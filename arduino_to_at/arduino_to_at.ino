@@ -23,7 +23,6 @@ AltSoftSerial esp8266;
 void setup() {
   Serial.begin(9600);
   esp8266.begin(9600);
-  esp8266.setTimeout(2000);
 
   pinMode(2, OUTPUT);
   
@@ -40,17 +39,20 @@ void setup() {
     Serial.print("IP=");
     Serial.println(espRead(NULL));
   }
-  //sendCommand("AT+CIPMUX=1", 5, "OK");
+  sendCommand("AT+CIPMUX=1", 5, "OK");
   sendCommand("AT+CIPSERVER=1,333", 20, "OK"); //AT+CIPSERVER=1,333 -> porta di default
-  //sendCommand("AT+CIPSTO=7200", 5, "OK");
+  sendCommand("AT+CIPSTO=7200", 5, "OK");
   //sendCommand("AT+MDNS=1,\"espressif\",\"iot\",333", 5, "OK");
-  sendCommand("AT+CWHOSTNAME=\"espressif\"", 5, "OK");
+  //sendCommand("AT+CWHOSTNAME=\"espressif\"", 5, "OK");
 }
 
 void loop() { 
 
+  int a = millis();
   String readed = espRead("+IPD,");
   if (readed.length() > 0) {
+    int b = millis();
+    Serial.println(b - a);
 
     Serial.println("-----------------------------------------------------");
     String connectionNumber = getValue(readed, ',', 0);
@@ -70,11 +72,12 @@ void loop() {
       digitalWrite(2, LOW);
     }
 
-
+    a = millis();
     if(sendCommand("AT+CIPSEND=" + connectionNumber + "," + (response.length()+2), 1, NULL)){
       sendCommand(response, 1, NULL);//"SEND OK"); 
     }
-    
+    b = millis();
+    Serial.println(b - a);
   }
 
 }
@@ -124,6 +127,8 @@ String espRead(char condition[])
   if (condition == NULL || esp8266.find(condition))
   {
     int bytes = esp8266.readBytesUntil(END_CHAR, readBuffer, BUFFER_LENGTH);
+    if(readBuffer[bytes-1] == '\n')
+      readBuffer[bytes-1] = END_CHAR;
     readBuffer[bytes] = END_CHAR;
     for(int i=0; readBuffer[i] != END_CHAR && i < BUFFER_LENGTH; i++){
       content.concat(readBuffer[i]);

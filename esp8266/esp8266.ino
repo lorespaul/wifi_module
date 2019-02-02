@@ -1,9 +1,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include "common.h"
 
 #define MAX_CLIENTS 10
 #define MAX_SERVER 3
-#define BUFFER_LENGTH 100
 #define DEFAULT_SERVER_PORT 333
 
 static char AT[] = "AT";
@@ -12,6 +12,8 @@ static char AT_DIAG[] = "AT+DIAG";
 static char AT_GMR[] = "AT+GMR";
 static char AT_CWMODE[] = "AT+CWMODE";
 static char AT_CWJAP[] = "AT+CWJAP";
+static char AT_CWQAP[] = "AT+CWQAP";
+static char AT_CWSAP[] = "AT+CWSAP";
 static char AT_CIPSTA[] = "AT+CIPSTA?";
 static char AT_CIPMUX[] = "AT+CIPMUX";
 static char AT_CIPSERVER[] = "AT+CIPSERVER";
@@ -29,12 +31,6 @@ static char ERR[] = "ERROR";
 static char COMMA = ',';
 static char POINTS = ':';
 
-#define EQ '='
-#define ASK '?'
-
-#define NL '\n'
-#define CR '\r'
-#define ES '\0'
 
 char readBuffer[BUFFER_LENGTH];
 char writeBuffer[BUFFER_LENGTH];
@@ -51,11 +47,16 @@ char lastHostname[50];
 char ssid[50];
 char password[50];
 
+char ap_ssid[50] = "AI-THINKER_A0C76D";
+char ap_password[50] = "";
+int ap_channel = 11;
 
 void setup() {
   Serial.begin(9600);
   
   WiFi.mode(WIFI_AP);
+  WiFi.softAP(ap_ssid, ap_password, ap_channel, false);
+  
   for(int i=0; i<MAX_SERVER; i++){
     usedPorts[i] = -1;
   }
@@ -65,6 +66,7 @@ void setup() {
 }
 
 
+
 void loop() {
 
   boolean error = false;
@@ -72,7 +74,7 @@ void loop() {
 
   memset(writeBuffer, ES, BUFFER_LENGTH);
   memset(readBuffer, ES, BUFFER_LENGTH);
-  cleanSupport();
+  cleanBidimensionalCharArray(support);
 
   for(int i=0; i<MAX_SERVER; i++){
     WiFiClient newClient = tcpServer[i].available();
@@ -108,11 +110,16 @@ void loop() {
       writeBuffer[strlen(writeBuffer)] = POINTS;
       strappend(writeBuffer, support[1]);
       tcpClients[i].flush();
-      goToPrint = true;
+      if(strstart(support[1], AT_CWJAP)){
+        memset(writeBuffer, ES, BUFFER_LENGTH);
+        _memcpy(readBuffer, support[1], strlen(support[1]));
+      } else {
+        goToPrint = true; 
+      }
     } else if(clientConnected[i] && !tcpClients[i].connected()){
       clientConnected[i] = false;
       Serial.print(i);
-      Serial.println(",DISCONNECTED");
+      Serial.println(",CLOSED");
     }
   }
 
@@ -144,7 +151,7 @@ void loop() {
         Serial.print("\r+CWMODE:");
         Serial.println(WiFi.getMode());
       } else {
-        split(readBuffer, EQ);
+        split(readBuffer, EQ, support);
         if(strlen(support[1]) == 1 && isDigit(support[1][0])) {
           char cwmode = support[1][0];
           char temp = cwmode;
@@ -168,36 +175,87 @@ void loop() {
       }
     }
 
+
+    if(strstart(readBuffer, AT_CWSAP)) {
+      if(WiFi.getMode() == 2 || WiFi.getMode() == 3){
+        boolean printInfo = false;
+        if(_charAt(readBuffer, maxIndex) == ASK){
+          printInfo = true;
+        } else {
+          split(readBuffer, EQ, support);
+          _memcpy(readBuffer, support[1], strlen(support[1]));
+          split(readBuffer, ',', support);
+          charremove(support[0], '"');
+          charremove(support[1], '"');
+          if(strlen(support[0]) > 0 && strlen(support[2]) > 0){
+            _memcpy(ap_ssid, support[0], strlen(support[0]));
+            _memcpy(ap_password, support[1], strlen(support[1]));
+            ap_channel = atoi(support[2]);
+            WiFi.softAP(ap_ssid, ap_password, ap_channel, false); 
+            printInfo = true;
+          } else {
+            error = true;
+          }
+        }
+        if(printInfo){
+          _memcpy(writeBuffer, "+CWSAP:", 7);
+          writeBuffer[strlen(writeBuffer)] = '"';
+          strappend(writeBuffer, ap_ssid);
+          writeBuffer[strlen(writeBuffer)] = '"';
+          writeBuffer[strlen(writeBuffer)] = ',';
+          writeBuffer[strlen(writeBuffer)] = '"';
+          strappend(writeBuffer, ap_password);
+          writeBuffer[strlen(writeBuffer)] = '"';
+          writeBuffer[strlen(writeBuffer)] = ',';
+          itoa(ap_channel, support[0], 10);
+          strappend(writeBuffer, support[0]);
+        }
+      } else {
+        error = true;
+      }
+    }
+    
+
     if(strstart(readBuffer, AT_CWJAP)) {
-      split(readBuffer, EQ);
-      _memcpy(readBuffer, support[1], strlen(support[1]));
-      split(readBuffer, ',');
-      charremove(support[0], '"');
-      charremove(support[1], '"');
-      char* ssid = support[0];
-      char* password = support[1];
+      if(WiFi.getMode() == 1 || WiFi.getMode() == 3){
+        split(readBuffer, EQ, support);
+        _memcpy(readBuffer, support[1], strlen(support[1]));
+        split(readBuffer, ',', support);
+        charremove(support[0], '"');
+        charremove(support[1], '"');
+        char* ssid = support[0];
+        char* password = support[1];
+        if(WiFi.status() == WL_CONNECTED){
+          WiFi.disconnect(true);
+        }
+        WiFi.begin(ssid, password);
+        Serial.print("SSID: ");
+        Serial.println(ssid);
+        Serial.print("Password: ");
+        Serial.println(password);
+        while (WiFi.status() != WL_CONNECTED)
+        {
+          if(WiFi.status() == WL_CONNECT_FAILED){
+            error = true;
+            break;
+          }
+          if(!error){
+            delay(200);
+            Serial.print("."); 
+          }
+        }
+        Serial.println(); 
+        _memcpy(writeBuffer, OKY, sizeof(OKY));
+        serialClean();
+      } else {
+        error = true;
+      }
+    }
+    
+    if(streq(readBuffer, AT_CWQAP)) {
       if(WiFi.status() == WL_CONNECTED){
         WiFi.disconnect(true);
       }
-      WiFi.begin(ssid, password);
-      Serial.print("SSID: ");
-      Serial.println(ssid);
-      Serial.print("Password: ");
-      Serial.println(password);
-      while (WiFi.status() != WL_CONNECTED)
-      {
-        if(WiFi.status() == WL_CONNECT_FAILED){
-          error = true;
-          break;
-        }
-        if(!error){
-          delay(200);
-          Serial.print("."); 
-        }
-      }
-      Serial.println(); 
-      _memcpy(writeBuffer, OKY, sizeof(OKY));
-      serialClean();
     }
 
     if(streq(readBuffer, AT_CIPSTA)) {
@@ -208,9 +266,9 @@ void loop() {
     }
 
     if(strstart(readBuffer, AT_CIPSERVER)) {
-      split(readBuffer, EQ);
+      split(readBuffer, EQ, support);
       _memcpy(readBuffer, support[1], strlen(support[1]));
-      split(readBuffer, ',');
+      split(readBuffer, ',', support);
       char* sIndex = support[0];
       char* sPort = support[1];
       int index = -1, port = -1;
@@ -253,7 +311,7 @@ void loop() {
         char* toPrint = strlen(lastHostname) > 0 ? lastHostname : UNSETTED;
         _memcpy(writeBuffer, toPrint, strlen(toPrint));
       } else {
-        split(readBuffer, EQ);
+        split(readBuffer, EQ, support);
         charremove(support[1], '"');
         char* hostname = support[1];
         if(MDNS.begin(hostname)){
@@ -269,9 +327,9 @@ void loop() {
     }
 
     if(strstart(readBuffer, AT_CIPSEND)){
-      split(readBuffer, EQ);
+      split(readBuffer, EQ, support);
       _memcpy(readBuffer, support[1], strlen(support[1]));
-      split(readBuffer, ',');
+      split(readBuffer, ',', support);
       char* sClientIndex = support[0];
       char* sResponseLength = support[1];
       if(isNumber(sClientIndex) && isNumber(sResponseLength)){
@@ -330,97 +388,6 @@ int isServerPortUsed(int port){
   return -1;
 }
 
-
-void split(char* data, char separator)
-{
-    int founded = -1;
-    int strIndex[] = { 0, -1 };
-    int maxIndex = strlen(data) - 1;
-
-    for (int i = 0; i <= maxIndex; i++) {
-        if (_charAt(data, i) == separator || i == maxIndex) {
-            strIndex[0] = strIndex[1] + 1;
-            strIndex[1] = (i == maxIndex) ? i+1 : i;
-            founded++;
-            substr(data, support[founded], strIndex[0], strIndex[1]);
-        }
-    }
-}
-
-boolean strstart(char str[], char check[]){  
-  int len = strlen(check);
-  return strlen(str) >= len && strncmp(str, check , len) == 0;
-}
-
-boolean streq(char str[], char check[]){
-  int len = strlen(str);
-  if(len != strlen(check))
-    return false;
-  for(int i=0; i<len; i++){
-    if(str[i] != check[i])
-      return false;
-  }
-  return true;
-}
-
-void charremove(char str[], char rem){
-    int replaced = 0;
-    int len = (int)strlen(str);
-    bool zeroAtTheEnd = false;
-    for(int i=0; i<len; i++){
-        if(!zeroAtTheEnd){
-            if(str[i] == rem){
-                replaced++;
-            }
-            if(i + replaced < len - 1){
-                str[i] = str[i + replaced];
-            } else {
-                zeroAtTheEnd = true;
-                i--;
-            }
-        } else {
-            str[i] = ES;
-        }
-    }
-}
-
-void substr(char* string, char buff[], int start, int finish){
-  int len = finish - start;
-  _memcpy(buff, &string[start], len);
-}
-
-void strappend(char str[], char* append){
-    int strLen = (int)strlen(str);
-    int appendLen = (int)strlen(append);
-    for(int i=strLen; i<strLen+appendLen; i++){
-        int appendIndex = (i - strLen);
-        str[i] = *(append + appendIndex);
-    }
-}
-
-void _memcpy(char buff[], char* start, int len){
-  memcpy(buff, start, len);
-  buff[len] = ES;
-}
-
-char _charAt(char* string, int index){
-  return *(string + index);
-}
-
-boolean isNumber(char* string){
-  for(int i=0; i<strlen(string); i++){
-    if(!isDigit(_charAt(string, i))){
-      return false;
-    }
-  }
-  return true;
-}
-
-void cleanSupport(){
-  for(int i=0; i<MAX_SUPPORT; i++){
-    memset(support[i], ES, BUFFER_LENGTH);
-  }
-}
 
 void serialClean(){
   while (Serial.available()) {

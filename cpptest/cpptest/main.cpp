@@ -8,12 +8,12 @@
 
 #include <iostream>
 #include <cstdio>
+#include "interface.h"
 
 using namespace std;
 
 #define MAX_CLIENTS 10
 #define MAX_SERVER 3
-#define BUFFER_LENGTH 100
 #define DEFAULT_SERVER_PORT 333
 
 //static char AT[] = "AT";
@@ -45,9 +45,6 @@ char writeBuffer[BUFFER_LENGTH];
 char support[MAX_SUPPORT][BUFFER_LENGTH];
 
 
-char _charAt(char* string, int index){
-    return *(string + index);
-}
 
 bool strstart(char str[], char check[]){
     int len = (int)strlen(check);
@@ -66,31 +63,6 @@ bool streq(char str[], char check[]){
     return true;
 }
 
-void _memcpy(char buff[], char* start, int len){
-    memcpy(buff, start, len);
-    buff[len] = ES;
-}
-
-void substr(char* string, char buff[], int start, int finish){
-    int len = finish - start;
-    _memcpy(buff, &string[start], len);
-}
-
-void split(char* data, char separator)
-{
-    int founded = -1;
-    int strIndex[] = { 0, -1 };
-    int maxIndex = (int)strlen(data) - 1;
-    
-    for (int i = 0; i <= maxIndex; i++) {
-        if (_charAt(data, i) == separator || i == maxIndex) {
-            strIndex[0] = strIndex[1] + 1;
-            strIndex[1] = (i == maxIndex) ? i+1 : i;
-            founded++;
-            substr(data, support[founded], strIndex[0], strIndex[1]);
-        }
-    }
-}
 
 
 bool isNumber(char* string){
@@ -125,16 +97,6 @@ void charremove(char str[], char rem){
 }
 
 
-void strappend(char str[], char* append){
-    int strLen = (int)strlen(str);
-    int appendLen = (int)strlen(append);
-    for(int i=strLen; i<strLen+appendLen; i++){
-        int appendIndex = (i - strLen);
-        str[i] = *(append + appendIndex);
-    }
-}
-
-
 int main(int argc, const char * argv[]) {
     char abc[20] = "ciao";
     char test[] = "ne";
@@ -146,7 +108,7 @@ int main(int argc, const char * argv[]) {
     _charAt(test, 9);
     substr((char*)"ciaonissimo", test, 2, 5);
     isNumber((char*)"345");
-    split((char*)"ciao,bella,ciao", ',');
+    split((char*)"ciao,bella,ciao", ',', support);
     streq((char*)"uno", (char*)"unooo");
     streq((char*)"uno", (char*)"uno");
     strstart((char*)"unoooo", (char*)"uno");
