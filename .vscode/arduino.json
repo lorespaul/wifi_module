@@ -1,8 +1,0 @@
-{
-    "sketch": "wifi_module.ino",
-    "port": "/dev/tty.usbmodem14101",
-    "board": "arduino:avr:uno",
-    "output": "../build",
-    "debugger": "jlink",
-    "prebuild": "bash prebuild.sh"
-}
