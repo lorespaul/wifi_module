@@ -22,12 +22,17 @@ bool clientConnected[MAX_CLIENTS];
 WiFiServer tcpServer[MAX_SERVER];
 int usedPorts[MAX_SERVER];
 
+static const int interval = 500;
+long lastTimePassed;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(74880);
   
-  WiFi.mode(WIFI_AP);
+  WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(ap_ssid, ap_password, ap_channel, false);
+
+  //tcpServer[1] = WiFiServer(DEFAULT_SERVER_PORT);
+  //tcpServer[1].begin();
   
   for(int i=0; i<MAX_SERVER; i++){
     usedPorts[i] = -1;
@@ -43,22 +48,20 @@ void loop() {
 
   bool error = false;
 
-  memset(writeBuffer, ES, BUFFER_LENGTH);
-  memset(readBuffer, ES, BUFFER_LENGTH);
-  cleanBidimensionalCharArray(support);
-
+  cleanAllBuffers();
 
   if(checkClientConnection(writeBuffer, support)){
     Serial.println(writeBuffer);
     return;
   }
+
+  cleanAllBuffers();
   
-  if(checkClientRequest(readBuffer, writeBuffer, support, &getClientRequest)){
+  if(checkClientRequest(readBuffer, writeBuffer, support, &getClientAtRequest)){
     Serial.println(writeBuffer);
     return;
   }
   
-
   if(!clientSendAtRequest){
     int maxIndex = readFromSerial(readBuffer);
     if(maxIndex == 0)
@@ -69,30 +72,39 @@ void loop() {
     
   Serial.println();
   Serial.println(readBuffer);
-  
-  checkAt(readBuffer, writeBuffer);
-  checkAtRst(readBuffer, writeBuffer);
-  checkAtGmr(readBuffer, writeBuffer);
-  if(checkAtDiag(readBuffer, writeBuffer, Serial)){
-    return;
-  }
-  checkAtCwmode(readBuffer, writeBuffer, support, &error);
 
-  checkAtCwqap(readBuffer, writeBuffer);
-  checkAtCwjap(readBuffer, writeBuffer, support, &error);
-  checkAtCipsta(readBuffer, writeBuffer, support);
-  checkAtCwsap(readBuffer, writeBuffer, support, &error);
-
-  checkAtCwhostname(readBuffer, writeBuffer, support, &error);
-  checkAtCipserver(readBuffer, writeBuffer, support, &error);
+  // chipsend must take priority over other commands
   checkAtCipsend(readBuffer, writeBuffer, support, &handleServerReadFromSerial, &error);
-  
-  if(error) {
-    _memcpy(writeBuffer, ERR, sizeof(ERR));
-  }
 
-  if(strlen(writeBuffer) > 0){
-    Serial.println(writeBuffer);
+  if(millis() - lastTimePassed > interval || clientSendAtRequest){
+    lastTimePassed = millis();
+    
+    checkAt(readBuffer, writeBuffer);
+    checkAtRst(readBuffer, writeBuffer);
+    checkAtGmr(readBuffer, writeBuffer);
+    if(checkAtDiag(readBuffer, writeBuffer, Serial)){
+      return;
+    }
+    checkAtCwmode(readBuffer, writeBuffer, support, &error);
+  
+    checkAtCwqap(readBuffer, writeBuffer);
+    checkAtCwjap(readBuffer, writeBuffer, support, &error);
+    checkAtCipsta(readBuffer, writeBuffer, support);
+    checkAtCwsap(readBuffer, writeBuffer, support, &error);
+  
+    checkAtCwhostname(readBuffer, writeBuffer, support, &error);
+    checkAtCipserver(readBuffer, writeBuffer, support, &error);
+
+    checkAte(readBuffer, writeBuffer, &error);
+    
+    if(error) {
+      _memcpy(writeBuffer, ERR, sizeof(ERR));
+    }
+  
+    if(strlen(writeBuffer) > 0){
+      Serial.println(writeBuffer);
+    }
+  
   }
 }
 
@@ -110,8 +122,15 @@ char* handleServerReadFromSerial(int readLength){
 }
 
 
-void getClientRequest(char* request){
+void getClientAtRequest(char* request){
   Serial.print("\nNext AT is from client...");
   clientSendAtRequest = true;
   _memcpy(readBuffer, request, strlen(request));
+}
+
+
+void  cleanAllBuffers(){
+  memset(writeBuffer, ES, BUFFER_LENGTH);
+  memset(readBuffer, ES, BUFFER_LENGTH);
+  cleanBidimensionalCharArray(support);
 }

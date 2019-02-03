@@ -105,12 +105,54 @@ int convertIntToChar(char convert[]){
 char testStatic[10];
 
 
+string stringFind(string str, char check[]){
+    int checkLen = (int)strlen(check);
+    int checkLenConst = checkLen;
+    int strCheckStartIndex = 0;
+    string result = "";
+    for(int i=0; i<str.length(); i++){
+        for(int j=0; j<checkLenConst; j++){
+            if(str.at(i + j) != check[j]){
+                checkLen = checkLenConst;
+                break;
+            }
+            else checkLen--;
+            if(checkLen == 0){
+                strCheckStartIndex = i + checkLenConst;
+                break;
+            }
+        }
+        if(checkLen == 0)
+            break;
+    }
+    if(checkLen == 0){
+        return str.substr(strCheckStartIndex);
+    }
+    return "";
+}
+
+bool strend(const char str[], const char check[]){
+    int strLen = (int)strlen(str);
+    int checkLen = (int)strlen(check);
+    int i, j;
+    for(i=strLen-1, j=checkLen-1; i>=0 && j>=0; i--, j--){
+        if(str[i] != check[j])
+            return false;
+    }
+    return true;
+}
+
+
 int main(int argc, const char * argv[]) {
     //char abc[20] = "ciao";
     //char test[] = "ne";
 //    if(&test[0] == test){
 //        printf("%s\n", "aia");
 //    }
+    char find[] = "djalshclaksd+ID,";
+    char find2[] = "+IPD,";
+    strend(find, find2);
+    string founded = stringFind("\n\n+IPD,kdjhf ijsfn, ndfnkaudfh", find);
     test();
     //char* a = testStatic;
 //    referenceTest(a);

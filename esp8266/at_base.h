@@ -9,6 +9,7 @@ extern "C" {
 #include "common.h"
 }
 
+static const char ATE[] = "ATE";
 static const char AT[] = "AT";
 static const char AT_RST[] = "AT+RST";
 static const char AT_DIAG[] = "AT+DIAG";
