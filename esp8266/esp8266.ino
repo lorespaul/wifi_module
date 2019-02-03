@@ -30,9 +30,6 @@ void setup() {
   
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ap_ssid, ap_password, ap_channel, false);
-
-  //tcpServer[1] = WiFiServer(DEFAULT_SERVER_PORT);
-  //tcpServer[1].begin();
   
   for(int i=0; i<MAX_SERVER; i++){
     usedPorts[i] = -1;

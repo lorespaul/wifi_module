@@ -82,9 +82,6 @@ void substr(const char* string, char buff[], int start, int finish){
 
 
 void _memcpy(char buff[], const char* start, int len){
-  int buffSize = sizeof(buff);
-  if(len > buffSize)
-    len = buffSize;
   memcpy(buff, start, len);
   buff[len] = ES;
 }
