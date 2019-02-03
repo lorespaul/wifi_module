@@ -39,11 +39,11 @@ void setup() {
     Serial.print("IP=");
     Serial.println(espRead(NULL));
   }
-  sendCommand("AT+CIPMUX=1", 5, "OK");
+  //sendCommand("AT+CIPMUX=1", 5, "OK");
   sendCommand("AT+CIPSERVER=1,333", 20, "OK"); //AT+CIPSERVER=1,333 -> porta di default
-  sendCommand("AT+CIPSTO=7200", 5, "OK");
+  //sendCommand("AT+CIPSTO=7200", 5, "OK");
   //sendCommand("AT+MDNS=1,\"espressif\",\"iot\",333", 5, "OK");
-  //sendCommand("AT+CWHOSTNAME=\"espressif\"", 5, "OK");
+  sendCommand("AT+CWHOSTNAME=\"espressif\"", 5, "OK");
 }
 
 void loop() { 

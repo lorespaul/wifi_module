@@ -2,16 +2,10 @@
 //  Copyright © 2019 lore. All rights reserved.
 //
 
-#ifndef interface_h
-#define interface_h
+#ifndef common_h
+#define common_h
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef int bool;
-#define true 1
-#define false 0
+#include <stdbool.h>
 
 #define BUFFER_LENGTH 100
 
@@ -20,20 +14,19 @@ typedef int bool;
 #define NL '\n'
 #define CR '\r'
 #define ES '\0'
+#define COMMA ','
+#define POINTS ':'
 
-void strappend(char str[], char* append);
-void split(char* data, char separator, char support[][BUFFER_LENGTH]);
-bool strstart(char str[], char check[]);
-bool streq(char str[], char check[]);
-void charremove(char str[], char rem);
-void substr(char* string, char buff[], int start, int finish);
-void _memcpy(char buff[], char* start, int len);
-char _charAt(char* string, int index);
+void strappend(char str[], const char* append);
+void split(const char* data, const char separator, char support[][BUFFER_LENGTH]);
+bool strstart(const char str[], const char check[]);
+bool streq(const char str[], const char check[]);
+void charremove(char str[], const char rem);
+void substr(const char* string, char buff[], int start, int finish);
+void _memcpy(char buff[], const char* start, int len);
+char _charAt(const char* string, int index);
 bool isNumber(char* string);
 void cleanBidimensionalCharArray(char support[][BUFFER_LENGTH]);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
-#endif /* interface_h */
+#endif /* common_h */

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "interface.h"
+#include "cpplink.h"
 
 void strappend(char str[], char* append){
     int strLen = (int)strlen(str);
@@ -47,4 +48,11 @@ void _memcpy(char buff[], char* start, int len){
 
 char _charAt(char* string, int index){
     return *(string + index);
+}
+
+
+int check(int (*callback)(char convert[])){
+    char charNumber[] = "46";
+    int res = (*callback)(charNumber);
+    return res;
 }

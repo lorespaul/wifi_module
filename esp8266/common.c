@@ -6,7 +6,7 @@
 #include <string.h>
 #include "common.h"
 
-void strappend(char str[], char* append){
+void strappend(char str[], const char* append){
     int strLen = (int)strlen(str);
     int appendLen = (int)strlen(append);
     for(int i=strLen; i<strLen+appendLen; i++){
@@ -16,7 +16,7 @@ void strappend(char str[], char* append){
 }
 
 
-void split(char* data, char separator, char support[][BUFFER_LENGTH]){
+void split(const char* data, const char separator, char support[][BUFFER_LENGTH]){
     int founded = -1;
     int strIndex[] = { 0, -1 };
     int maxIndex = strlen(data) - 1;
@@ -32,14 +32,14 @@ void split(char* data, char separator, char support[][BUFFER_LENGTH]){
 }
 
 
-bool strstart(char str[], char check[]){  
+bool strstart(const char str[], const char check[]){  
   int len = strlen(check);
   return strlen(str) >= len && strncmp(str, check , len) == 0;
 }
 
 
 
-bool streq(char str[], char check[]){
+bool streq(const char str[], const char check[]){
   int len = strlen(str);
   if(len != strlen(check))
     return false;
@@ -52,7 +52,7 @@ bool streq(char str[], char check[]){
 
 
 
-void charremove(char str[], char rem){
+void charremove(char str[], const char rem){
     int replaced = 0;
     int len = (int)strlen(str);
     bool zeroAtTheEnd = false;
@@ -74,20 +74,20 @@ void charremove(char str[], char rem){
 }
 
 
-void substr(char* string, char buff[], int start, int finish){
+void substr(const char* string, char buff[], int start, int finish){
   int len = finish - start;
   _memcpy(buff, &string[start], len);
 }
 
 
 
-void _memcpy(char buff[], char* start, int len){
+void _memcpy(char buff[], const char* start, int len){
   memcpy(buff, start, len);
   buff[len] = ES;
 }
 
 
-char _charAt(char* string, int index){
+char _charAt(const char* string, int index){
   return *(string + index);
 }
 

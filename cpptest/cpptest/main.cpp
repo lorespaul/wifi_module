@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include <cstdio>
+#include <string>
+#include "cpplink.h"
 #include "interface.h"
 
 using namespace std;
@@ -96,17 +98,26 @@ void charremove(char str[], char rem){
     }
 }
 
+int convertIntToChar(char convert[]){
+    return atoi(convert);
+}
+
+char testStatic[10];
+
 
 int main(int argc, const char * argv[]) {
-    char abc[20] = "ciao";
-    char test[] = "ne";
-    if(&test[0] == test){
-        printf("%s\n", "aia");
-    }
-    
-    strappend(abc, test);
-    _charAt(test, 9);
-    substr((char*)"ciaonissimo", test, 2, 5);
+    //char abc[20] = "ciao";
+    //char test[] = "ne";
+//    if(&test[0] == test){
+//        printf("%s\n", "aia");
+//    }
+    test();
+    //char* a = testStatic;
+//    referenceTest(a);
+    check(&convertIntToChar);
+    //strappend(AT, test);
+    //_charAt(test, 9);
+    //substr((char*)"ciaonissimo", test, 2, 5);
     isNumber((char*)"345");
     split((char*)"ciao,bella,ciao", ',', support);
     streq((char*)"uno", (char*)"unooo");
