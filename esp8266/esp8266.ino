@@ -28,7 +28,7 @@ long lastTimePassed;
 void setup() {
   Serial.begin(74880);
   
-  WiFi.mode(WIFI_AP_STA);
+  WiFi.mode(WIFI_AP);
   WiFi.softAP(ap_ssid, ap_password, ap_channel, false);
 
   //tcpServer[1] = WiFiServer(DEFAULT_SERVER_PORT);
