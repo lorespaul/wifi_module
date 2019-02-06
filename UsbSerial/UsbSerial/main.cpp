@@ -33,27 +33,28 @@ int open_port(void)
     {
         perror("open_port: Unable to open /dev/cu.usbserial-1420");
     }
-    
+
     fcntl(fd, F_SETFL, 0);
-    
+
     struct termios options;
     tcgetattr(fd, &options);
-    
-    cfsetispeed(&options, 74880);
-    cfsetospeed(&options, 74880);
+
+    cfsetispeed(&options, B76800);
+    cfsetospeed(&options, B76800);
     options.c_cflag |= (CLOCAL | CREAD);
     options.c_cflag &= ~PARENB;
     options.c_cflag &= ~CSTOPB;
     options.c_cflag &= ~CSIZE;
     options.c_cflag |= CS8;
     tcsetattr(fd,TCSANOW,&options);
-    
+
     return (fd);
 }
 
 int write(const char* buff){
 //    int i = (int)write(fd, buff, strlen(buff));
     int i = (int)write(fd, "AT\r", 3);
+    tcflush(fd, TCIFLUSH);
     return i;
 }
 
@@ -79,11 +80,11 @@ void read(){
 int main(int argc, const char * argv[]) {
     // insert code here...
     open_port();
-    
+
     write("AT\r");
     read();
     printf("%s", readBuffer);
-    
+
     close(fd);
     return 0;
 }
