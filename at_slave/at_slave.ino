@@ -35,25 +35,33 @@ void loop() {
   } else if(canLoop && tcpClient.available()){
 
     memset(readBuffer, ES, BUFFER_LENGTH);
-    
-    int j; char newChar;
+
+    int j; char newChar; bool breakNext = false;
     for(j=0; (newChar = tcpClient.read()) != NL && j<BUFFER_LENGTH; j++){
       if(newChar == CR || newChar == ES)
         break;
       readBuffer[strlen(readBuffer)] = newChar;
+      if(breakNext)
+        break;
+      if(!tcpClient.available())
+        breakNext = true;
     }
+    if(j == 0){
+      return;
+    }
+    
     readBuffer[j] = ES;
     tcpClient.flush();
     Serial.print("DEBUG1: ");
     Serial.println(readBuffer);
-    if(!strend(readBuffer, OKY)){
+    /*if(!strend(readBuffer, OKY)){
       Serial.print("DEBUG2: ");
       Serial.println(readBuffer);
       tcpClient.print(readBuffer);
       tcpClient.print(POINTS);
       tcpClient.println(OKY);
       tcpClient.flush();
-    }
+    }*/
 
     if(streq(readBuffer, "HIGH")){
       digitalWrite(PIN_GPIO_0, HIGH);

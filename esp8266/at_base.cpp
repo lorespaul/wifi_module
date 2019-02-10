@@ -46,7 +46,7 @@ bool checkAtCwmode(const char readBuffer[], char writeBuffer[], char support[][B
     if(_charAt(readBuffer, strlen(readBuffer) - 1) == ASK){
       _memcpy(writeBuffer, "\r+CWMODE:", 9);
       itoa((int)WiFi.getMode(), support[0], 10);
-      strappend(writeBuffer, support[0]);
+      strappend(writeBuffer, support[0], BUFFER_LENGTH);
     } else {
       split(readBuffer, EQ, support);
       if(strlen(support[1]) == 1 && isDigit(support[1][0])) {

@@ -11,7 +11,6 @@ extern "C" {
 
 char readBuffer[BUFFER_LENGTH];
 char writeBuffer[BUFFER_LENGTH];
-#define MAX_SUPPORT 3
 char support[MAX_SUPPORT][BUFFER_LENGTH];
 
 bool clientSendAtRequest = false;
@@ -22,8 +21,9 @@ bool clientConnected[MAX_CLIENTS];
 WiFiServer tcpServer[MAX_SERVER];
 int usedPorts[MAX_SERVER];
 
-static const int interval = 500;
-long lastTimePassed;
+
+bool firstLoop = true;
+
 
 void setup() {
   Serial.begin(74880);
@@ -54,7 +54,7 @@ void loop() {
 
   cleanAllBuffers();
   
-  if(checkClientRequest(readBuffer, writeBuffer, support, &getClientAtRequest)){
+  if(checkClientRequest(writeBuffer, support, &getClientAtRequest)){
     Serial.println(writeBuffer);
     return;
   }
@@ -66,43 +66,49 @@ void loop() {
   } else {
     clientSendAtRequest = false;
   }
+
+  if(!strstart(readBuffer, AT)){
+    if(firstLoop){
+      firstLoop = false;
+    } else {
+      Serial.println();
+      Serial.println(ERR);
+    }
+    return;
+  }
     
   Serial.println();
   Serial.println(readBuffer);
 
   // chipsend must take priority over other commands
   checkAtCipsend(readBuffer, writeBuffer, support, &handleServerReadFromSerial, &error);
-
-  if(millis() - lastTimePassed > interval || clientSendAtRequest){
-    lastTimePassed = millis();
     
-    checkAt(readBuffer, writeBuffer);
-    checkAtRst(readBuffer, writeBuffer);
-    checkAtGmr(readBuffer, writeBuffer);
-    if(checkAtDiag(readBuffer, writeBuffer, Serial)){
-      return;
-    }
-    checkAtCwmode(readBuffer, writeBuffer, support, &error);
-  
-    checkAtCwqap(readBuffer, writeBuffer);
-    checkAtCwjap(readBuffer, writeBuffer, support, &error);
-    checkAtCipsta(readBuffer, writeBuffer, support);
-    checkAtCwsap(readBuffer, writeBuffer, support, &error);
-  
-    checkAtCwhostname(readBuffer, writeBuffer, support, &error);
-    checkAtCipserver(readBuffer, writeBuffer, support, &error);
-
-    checkAte(readBuffer, writeBuffer, &error);
-    
-    if(error) {
-      _memcpy(writeBuffer, ERR, sizeof(ERR));
-    }
-  
-    if(strlen(writeBuffer) > 0){
-      Serial.println(writeBuffer);
-    }
-  
+  checkAt(readBuffer, writeBuffer);
+  checkAtRst(readBuffer, writeBuffer);
+  checkAtGmr(readBuffer, writeBuffer);
+  if(checkAtDiag(readBuffer, writeBuffer, Serial)){
+    return;
   }
+  checkAtCwmode(readBuffer, writeBuffer, support, &error);
+
+  checkAtCwqap(readBuffer, writeBuffer);
+  checkAtCwjap(readBuffer, writeBuffer, support, &error);
+  checkAtCipsta(readBuffer, writeBuffer, support);
+  checkAtCwsap(readBuffer, writeBuffer, support, &error);
+
+  checkAtCwhostname(readBuffer, writeBuffer, support, &error);
+  checkAtCipserver(readBuffer, writeBuffer, support, &error);
+
+  checkAte(readBuffer, writeBuffer, &error);
+  
+  if(error) {
+    _memcpy(writeBuffer, ERR, sizeof(ERR));
+  }
+
+  if(strlen(writeBuffer) > 0){
+    Serial.println(writeBuffer);
+  }
+  
 }
 
 
@@ -127,7 +133,7 @@ void getClientAtRequest(char* request){
 
 
 void  cleanAllBuffers(){
-  memset(writeBuffer, ES, BUFFER_LENGTH);
   memset(readBuffer, ES, BUFFER_LENGTH);
-  cleanBidimensionalCharArray(support);
+  memset(writeBuffer, ES, BUFFER_LENGTH);
+  memset(support, ES, sizeof(support[0][0])*MAX_SUPPORT*BUFFER_LENGTH);
 }

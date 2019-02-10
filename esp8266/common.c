@@ -6,10 +6,10 @@
 #include <string.h>
 #include "common.h"
 
-void strappend(char str[], const char* append){
+void strappend(char str[], const char* append, const int strSize){
     int strLen = (int)strlen(str);
     int appendLen = (int)strlen(append);
-    for(int i=strLen; i<strLen+appendLen; i++){
+    for(int i=strLen; i<strLen+appendLen && i<strSize; i++){
         int appendIndex = (i - strLen);
         str[i] = *(append + appendIndex);
     }
@@ -26,7 +26,9 @@ void split(const char* data, const char separator, char support[][BUFFER_LENGTH]
             strIndex[0] = strIndex[1] + 1;
             strIndex[1] = (i == maxIndex) ? i+1 : i;
             founded++;
-            substr(data, support[founded], strIndex[0], strIndex[1]);
+            if(founded<MAX_SUPPORT)
+              substr(data, support[founded], strIndex[0], strIndex[1]);
+            else break;
         }
     }
 }
@@ -99,11 +101,4 @@ bool isNumber(char* string){
     }
   }
   return true;
-}
-
-
-void cleanBidimensionalCharArray(char support[][BUFFER_LENGTH]){
-  for(int i=0; i<sizeof(support); i++){
-    memset(support[i], ES, sizeof(support[i]));
-  }
 }

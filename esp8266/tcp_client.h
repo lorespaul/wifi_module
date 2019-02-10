@@ -18,6 +18,6 @@ extern bool clientConnected[MAX_CLIENTS];
 
 bool checkAte(const char readBuffer[], char writeBuffer[], bool* error);
 bool checkClientConnection(char writeBuffer[], char support[][BUFFER_LENGTH]);
-bool checkClientRequest(const char readBuffer[], char writeBuffer[], char support[][BUFFER_LENGTH], void (*sendClientRequest)(char* request));
+bool checkClientRequest(char writeBuffer[], char support[][BUFFER_LENGTH], void (*sendClientRequest)(char* request));
 
 #endif /* tcp_client_h */

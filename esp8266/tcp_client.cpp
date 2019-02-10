@@ -34,8 +34,8 @@ bool checkClientConnection(char writeBuffer[], char support[][BUFFER_LENGTH]){
           clientConnected[j] = true;
           itoa(j, support[0], 10);
           writeBuffer[0] = NL;
-          strappend(writeBuffer, support[0]);
-          strappend(writeBuffer, ",CONNECTED");
+          strappend(writeBuffer, support[0], BUFFER_LENGTH);
+          strappend(writeBuffer, ",CONNECTED", BUFFER_LENGTH);
           return true;
         }
       }
@@ -45,19 +45,19 @@ bool checkClientConnection(char writeBuffer[], char support[][BUFFER_LENGTH]){
 }
   
 
-bool checkClientRequest(const char readBuffer[], char writeBuffer[], char support[][BUFFER_LENGTH], void (*sendClientRequest)(char* request)){
+bool checkClientRequest(char writeBuffer[], char support[][BUFFER_LENGTH], void (*sendClientRequest)(char* request)){
   for (int i=0 ; i<MAX_CLIENTS ; ++i) {
     if (clientConnected[i] && tcpClients[i].available()) {
       writeBuffer[0] = NL;
-      strappend(writeBuffer, IPD);
+      strappend(writeBuffer, IPD, BUFFER_LENGTH);
       itoa(i, support[0], 10);
-      strappend(writeBuffer, support[0]);
+      strappend(writeBuffer, support[0], BUFFER_LENGTH);
       writeBuffer[strlen(writeBuffer)] = COMMA;
       int j; char newChar; bool breakNext = false;
       for(j=0; (newChar = tcpClients[i].read()) != NL && j<BUFFER_LENGTH; j++){
         if(newChar == CR || newChar == ES)
           break;
-        support[1][strlen(support[1])] = newChar;
+        support[1][j] = newChar;
         if(breakNext)
           break;
         if(!tcpClients[i].available())
@@ -69,9 +69,9 @@ bool checkClientRequest(const char readBuffer[], char writeBuffer[], char suppor
       }
       support[1][j] = ES;
       itoa(j, support[2], 10);
-      strappend(writeBuffer, support[2]);
+      strappend(writeBuffer, support[2], BUFFER_LENGTH);
       writeBuffer[strlen(writeBuffer)] = POINTS;
-      strappend(writeBuffer, support[1]);
+      strappend(writeBuffer, support[1], BUFFER_LENGTH);
       tcpClients[i].flush();
       if(clientEchoActive){
         tcpClients[i].print(support[1]);
@@ -90,8 +90,8 @@ bool checkClientRequest(const char readBuffer[], char writeBuffer[], char suppor
       clientConnected[i] = false;
       itoa(i, support[0], 10);
       writeBuffer[0] = NL;
-      strappend(writeBuffer, support[0]);
-      strappend(writeBuffer, ",CLOSED");
+      strappend(writeBuffer, support[0], BUFFER_LENGTH);
+      strappend(writeBuffer, ",CLOSED", BUFFER_LENGTH);
       return true;
     }
   }

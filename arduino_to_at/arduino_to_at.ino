@@ -1,8 +1,9 @@
 //#include <Arduino.h>
 //#include <SoftwareSerial.h>
+//#define RX 10
+//#define TX 11
 #include <AltSoftSerial.h>
-#define RX 10
-#define TX 11
+#define outPin 2
 
 String AP = "TNCAPD493DF"; 
 String PASS = "1nt3rn3tt0rn4t0";
@@ -27,7 +28,7 @@ void setup() {
   Serial.begin(9600);
   esp8266.begin(74880);
   
-  pinMode(2, OUTPUT);
+  pinMode(outPin, OUTPUT);
   
   //sendCommand("AT+RST", 5, "");
   sendCommand("AT", 5, "OK");
@@ -55,11 +56,10 @@ void loop() {
   
   //String readed = espRead("+IPD,");
   String readed = espRead(NULL);
-  Serial.println("DEBUG1: " + readed);
-  Serial.println("DEBUG2: " + stringFind(readed, "+IPD,"));
-  if (readed.length() > 0 && stringFind(readed, "+IPD,").length() > 0) {
-    readed = stringFind(readed, "+IPD,");
-    Serial.println("DEBUG3: " + readed);
+  Serial.println("DEBUG: " + readed);
+  String support = stringFind(readed, "+IPD,");
+  if (readed.length() > 0 && support.length() > 0) {
+    readed = support;
 
     String connectionNumber = getValue(readed, ',', 0);
     readed = getValue(readed, ':', 1);
@@ -72,16 +72,17 @@ void loop() {
     if(readNextAsSlave1ConnectionNumber && readed == "Slave1"){
       Serial.println("Slave1 connected...");
       slave1ConnectionNumber = connectionNumber;
+      readNextAsSlave1ConnectionNumber = false;
     }
     else if(readed == "ON"){
       response = "ON:OK";
-      digitalWrite(2, HIGH);
+      digitalWrite(outPin, HIGH);
       if(sendCommand("AT+CIPSEND=" + slave1ConnectionNumber + ",6", 1, NULL))
         sendCommand("HIGH", 1, NULL);
     } 
     else if(readed == "OFF") {
       response = "OFF:OK";
-      digitalWrite(2, LOW);
+      digitalWrite(outPin, LOW);
       if(sendCommand("AT+CIPSEND=" + slave1ConnectionNumber + ",5", 1, NULL))
         sendCommand("LOW", 1, NULL);
     }

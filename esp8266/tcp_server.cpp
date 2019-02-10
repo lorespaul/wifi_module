@@ -28,7 +28,7 @@ bool checkAtCwhostname(const char readBuffer[], char writeBuffer[], char support
       char* hostname = support[1];
       if(MDNS.begin(hostname)){
         _memcpy(lastHostname, hostname, strlen(hostname));
-        strappend(lastHostname, LOCALE);
+        strappend(lastHostname, LOCALE, BUFF_INFO);
         _memcpy(writeBuffer, OKY, sizeof(OKY));
       } else {
         *error = true;
@@ -95,7 +95,7 @@ bool checkAtCipsend(const char readBuffer[], char writeBuffer[], char support[][
         tcpClients[clientIndex].println(response);
         tcpClients[clientIndex].flush();
         _memcpy(writeBuffer, response, strlen(response));
-        strappend(writeBuffer, "\n\nSEND OK");
+        strappend(writeBuffer, "\n\nSEND OK", BUFFER_LENGTH);
         serialClean();
       } else {
         *error = true;

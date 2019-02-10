@@ -9,13 +9,12 @@ extern "C" {
 #include "common.h"
 }
 
-static char lastHostname[50];
+#define BUFF_INFO 50
 
-static char ssid[50];
-static char password[50];
+static char lastHostname[BUFF_INFO];
 
-static char ap_ssid[50] = "AI-THINKER_A0C76D";
-static char ap_password[50] = "";
+static char ap_ssid[BUFF_INFO] = "AI-THINKER_A0C76D";
+static char ap_password[BUFF_INFO] = "";
 static int ap_channel = 11;
 
 bool checkAtCwqap(const char readBuffer[], char writeBuffer[]);

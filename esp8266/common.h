@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #define BUFFER_LENGTH 100
+#define MAX_SUPPORT 4
 
 #define EQ '='
 #define ASK '?'
@@ -17,7 +18,7 @@
 #define COMMA ','
 #define POINTS ':'
 
-void strappend(char str[], const char* append);
+void strappend(char str[], const char* append, const int strSize);
 void split(const char* data, const char separator, char support[][BUFFER_LENGTH]);
 bool strstart(const char str[], const char check[]);
 bool streq(const char str[], const char check[]);
@@ -26,7 +27,6 @@ void substr(const char* string, char buff[], int start, int finish);
 void _memcpy(char buff[], const char* start, int len);
 char _charAt(const char* string, int index);
 bool isNumber(char* string);
-void cleanBidimensionalCharArray(char support[][BUFFER_LENGTH]);
 
 
 #endif /* common_h */

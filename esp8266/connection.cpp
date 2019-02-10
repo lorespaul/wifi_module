@@ -55,7 +55,7 @@ bool checkAtCipsta(const char readBuffer[], char writeBuffer[], char support[][B
   if(streq(readBuffer, AT_CIPSTA)) {
     _memcpy(writeBuffer, "\r+CIPSTA:\"", 10);
     strcpy(support[0], WiFi.localIP().toString().c_str());
-    strappend(writeBuffer, support[0]);
+    strappend(writeBuffer, support[0], BUFFER_LENGTH);
     writeBuffer[strlen(writeBuffer)] = '"';
     return true;
   }
@@ -88,15 +88,15 @@ bool checkAtCwsap(const char readBuffer[], char writeBuffer[], char support[][BU
       if(printInfo){
         _memcpy(writeBuffer, "+CWSAP:", 7);
         writeBuffer[strlen(writeBuffer)] = '"';
-        strappend(writeBuffer, ap_ssid);
+        strappend(writeBuffer, ap_ssid, BUFFER_LENGTH);
         writeBuffer[strlen(writeBuffer)] = '"';
         writeBuffer[strlen(writeBuffer)] = ',';
         writeBuffer[strlen(writeBuffer)] = '"';
-        strappend(writeBuffer, ap_password);
+        strappend(writeBuffer, ap_password, BUFFER_LENGTH);
         writeBuffer[strlen(writeBuffer)] = '"';
         writeBuffer[strlen(writeBuffer)] = ',';
         itoa(ap_channel, support[0], 10);
-        strappend(writeBuffer, support[0]);
+        strappend(writeBuffer, support[0], BUFFER_LENGTH);
       }
     } else {
       *error = true;
