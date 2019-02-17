@@ -13,7 +13,7 @@ bool loopEven = true;
 
 void setup() {
   // initialize the serial port:
-  Serial.begin(230400);
+  Serial.begin(9600);
 
   pinMode(motors[0][0], OUTPUT);
   pinMode(motors[0][1], OUTPUT);
@@ -36,7 +36,7 @@ void loop() {
       lowerPen();
     }
     
-    createCommand(0, 200, 930);    
+    createCommand(0, 200, 200);    
     createCommand(1, 200, 300);
 
     invertRotation(0);
