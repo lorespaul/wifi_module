@@ -27,10 +27,7 @@ void setup() {
 }
 
 void loop() {
-  /*makeRevolution(7, 5);
-  makeRevolution(5, 8);
-  makeRevolution(3, 9);*/
-  //Serial.println(micros());
+  
   if(allMotorFinishACommand()){
     loopEven = !loopEven;
     if(loopEven){
@@ -39,13 +36,16 @@ void loop() {
       lowerPen();
     }
     
-    createCommand(0, 600, 200);    
-    createCommand(1, 300, 200);
+    createCommand(0, 200, 930);    
+    createCommand(1, 200, 300);
+
+    invertRotation(0);
+    invertRotation(1);
   }
 
   makeSteps(0);
   makeSteps(1);
-  
+
 }
 
 
@@ -109,18 +109,19 @@ bool isCommandInExecution(int motorPos){
 
 void liftPen(){
   digitalWrite(penMotor[0], LOW);
-  makeRevolution(penMotor[1], 1);
+  makeRevolution(penMotor[1]);
 }
 
 void lowerPen(){
   digitalWrite(penMotor[0], HIGH);
-  makeRevolution(penMotor[1], 1);
+  makeRevolution(penMotor[1]);
 }
 
-void makeRevolution(int stepPin, int delays){
+void makeRevolution(int stepPin){
   for(int i=0;i<stepsPerRevolution;i++){
      digitalWrite(stepPin, HIGH);
-     delay(delays);
+     delayMicroseconds(500);
      digitalWrite(stepPin, LOW);
+     delayMicroseconds(500);
   }
 }
