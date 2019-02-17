@@ -1,9 +1,11 @@
 
 const int stepsPerRevolution = 200;
-int motors[2][3] = {{6,7,LOW},{4,5,LOW}};
-// command in execution / last step command millis / remaining steps
-int motorsCommand[2][3] = {{0,0,0},{0,0,0}};
-float motorsStepsInterval[2];
+// dir pin / step pin / direction / step
+int motors[2][4] = {{6,7,LOW,LOW},{4,5,LOW,LOW}};
+// command in execution / remaining steps
+int motorsCommand[2][2] = {{0,0},{0,0}};
+unsigned long motorsLastStep[2];
+unsigned long motorsStepsInterval[2];
 
 int penMotor[2] = {2,3};
 
@@ -11,7 +13,7 @@ bool loopEven = true;
 
 void setup() {
   // initialize the serial port:
-  Serial.begin(9600);
+  Serial.begin(230400);
 
   pinMode(motors[0][0], OUTPUT);
   pinMode(motors[0][1], OUTPUT);
@@ -19,12 +21,16 @@ void setup() {
   pinMode(motors[1][1], OUTPUT);
   pinMode(penMotor[0], OUTPUT);
   pinMode(penMotor[1], OUTPUT);
+
+  digitalWrite(motors[0][1], LOW);
+  digitalWrite(motors[1][1], LOW);
 }
 
 void loop() {
   /*makeRevolution(7, 5);
   makeRevolution(5, 8);
   makeRevolution(3, 9);*/
+  //Serial.println(micros());
   if(allMotorFinishACommand()){
     loopEven = !loopEven;
     if(loopEven){
@@ -33,8 +39,8 @@ void loop() {
       lowerPen();
     }
     
-    createCommand(0, 200, 800);    
-    createCommand(1, 200, 1000);
+    createCommand(0, 600, 200);    
+    createCommand(1, 300, 200);
   }
 
   makeSteps(0);
@@ -53,31 +59,34 @@ void invertRotation(int motorPos){
   }
 }
 
-void createCommand(int motorPos, int steps, int totalStepsTime){
+void createCommand(int motorPos, int steps, int totalStepsTimeMillis){
   if(!isCommandInExecution(motorPos)){
     motorsCommand[motorPos][0] = 1;
-    motorsCommand[motorPos][1] = millis();
-    motorsCommand[motorPos][2] = steps;
-    motorsStepsInterval[motorPos] = totalStepsTime / (float)steps;
-    Serial.println("Step interval " + String(motorsStepsInterval[motorPos]) + " motor " + motorPos);
+    motorsCommand[motorPos][1] = steps;
+    motorsLastStep[motorPos] = micros();
+    motorsStepsInterval[motorPos] = 1000 * (totalStepsTimeMillis / (float)steps);
+    //Serial.println("Step interval " + String(1000 * (totalStepsTimeMillis / (float)steps)) + " motor " + String(motorPos));
   }
 }
 
 void makeSteps(int motorPos){
   if(isCommandInExecution(motorPos)){
-
-    digitalWrite(motors[motorPos][1], HIGH);
     
-    int timestamp = millis();
-    if((float)(timestamp - motorsCommand[motorPos][1]) > motorsStepsInterval[motorPos]){
-      motorsCommand[motorPos][1] = timestamp;
+    unsigned long timestamp = micros();
+    if(timestamp - motorsLastStep[motorPos] >= motorsStepsInterval[motorPos]){
+      motorsLastStep[motorPos] = timestamp;
       
-      digitalWrite(motors[motorPos][1], LOW);
+      if(motors[motorPos][3] == LOW){
+        motors[motorPos][3] = HIGH;
+        digitalWrite(motors[motorPos][1], HIGH);
+        motorsCommand[motorPos][1]--; // step done
+      } else if(motors[motorPos][3] == HIGH){
+        motors[motorPos][3] = LOW;
+        digitalWrite(motors[motorPos][1], LOW);
+      }
       
-      motorsCommand[motorPos][2]--;
-      
-      if(motorsCommand[motorPos][2] == 0){
-        finishCommand(motorPos);
+      if(motorsCommand[motorPos][1] == 0){
+        terminateCommand(motorPos);
         //Serial.println("Finish for motor: " + String(motorPos) + " in " + String(timestamp - motorsCommand[motorPos][4]));
       }
     } 
@@ -89,9 +98,9 @@ bool allMotorFinishACommand(){
   return !isCommandInExecution(0) && !isCommandInExecution(1);
 }
 
-void finishCommand(int motorPos){
+void terminateCommand(int motorPos){
+  digitalWrite(motors[motorPos][1], LOW);
   motorsCommand[motorPos][0] = 0;
-  //Serial.println("Command finish for motor " + String(motorPos));
 }
 
 bool isCommandInExecution(int motorPos){
