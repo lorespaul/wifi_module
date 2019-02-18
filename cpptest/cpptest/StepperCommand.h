@@ -20,7 +20,7 @@ namespace stp_motor {
         int stepsToExecute;
         unsigned long initTime;
         unsigned long lastStepTime;
-        unsigned long stepInterval;
+        unsigned long halfStepInterval;
         
         
     public:
@@ -30,9 +30,10 @@ namespace stp_motor {
         // 8mm : 360 = 0,04mm : 1.8
         // 8mm : 360 = 10mm : 450 -> 1cm
         
-        bool begin(int stepsToExecute, int totalStepsTimeMillis);
+        //bool begin(int stepsToExecute, int totalStepsTimeMillis);
+        bool begin(int millimeters, int movementTimeMillis);
         void end();
-        void halfStepDone(unsigned long timestamp, Power power);
+        void halfStepDone(unsigned long timestamp, int power);
         bool isCommandInExecution();
         bool canDoHalfStep(unsigned long timestamp);
         bool stepsTerminated();

@@ -22,7 +22,7 @@ Stepper::Stepper(int directionPin, int stepPin, bool bispositionStepper){
     this->stepPin = stepPin;
     this->direction = LOW;
     this->step = LOW;
-    digitalWrite(directionPin, (Power)this->direction);
+    digitalWrite(directionPin, this->direction);
     Serial::println("New Stepper");
 }
 
@@ -50,7 +50,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
             digitalWrite(this->stepPin, LOW);
         }
         
-        command.halfStepDone(timestamp, (Power)this->step);
+        command.halfStepDone(timestamp, this->step);
         
         if(command.stepsTerminated()){
             command.end();

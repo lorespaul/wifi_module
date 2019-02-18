@@ -18,22 +18,38 @@ using namespace serial;
 
 StepperCommand::StepperCommand(){
     Serial::println("New StepperCommand");
+    this->inExecution = false;
+    this->initTime = -1;
+    this->lastStepTime = -1;
+    this->halfStepInterval = -1;
 }
 
 StepperCommand::~StepperCommand(){
     Serial::println("Destroy StepperCommand");
 }
 
+//bool StepperCommand::begin(int stepsToExecute, int totalStepsTimeMillis){
+//    if(!isCommandInExecution()){
+//        this->inExecution = true;
+//        this->stepsToExecute = stepsToExecute;
+//        this->initTime = micros();
+//        this->lastStepTime = this->initTime;
+//        this->halfStepInterval = 500 * (totalStepsTimeMillis / (float)stepsToExecute);
+//        return true;
+//    }
+//    return false;
+//}
+
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
-
-bool StepperCommand::begin(int stepsToExecute, int totalStepsTimeMillis){
+// 8mm : 200 = millimeters : y
+bool StepperCommand::begin(int millimeters, int movementTimeMillis){
     if(!isCommandInExecution()){
         this->inExecution = true;
-        this->stepsToExecute = stepsToExecute;
+        this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
-        this->stepInterval = 500 * (totalStepsTimeMillis / (float)stepsToExecute);
+        this->halfStepInterval = 500 * (movementTimeMillis / (float)this->stepsToExecute);
         return true;
     }
     return false;
@@ -45,11 +61,12 @@ void StepperCommand::end(){
     
     Serial::println("command end in " + to_string((micros() - this->initTime) / 1000) + " millis.");
     this->inExecution = false;
-    this->lastStepTime = 0;
-    this->stepInterval = 0;
+    this->initTime = -1;
+    this->lastStepTime = -1;
+    this->halfStepInterval = -1;
 }
 
-void StepperCommand::halfStepDone(unsigned long timestamp, Power power){
+void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
     if(power == HIGH)
         this->stepsToExecute--;
@@ -60,7 +77,7 @@ bool StepperCommand::isCommandInExecution(){
 }
 
 bool StepperCommand::canDoHalfStep(unsigned long timestamp){
-    return timestamp - this->lastStepTime >= this->stepInterval;
+    return timestamp - this->lastStepTime >= this->halfStepInterval;
 }
 
 bool StepperCommand::stepsTerminated(){

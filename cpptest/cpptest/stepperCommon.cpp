@@ -25,6 +25,6 @@ void delayMicroseconds(unsigned int micros){
     usleep(micros);
 }
 
-void digitalWrite(int pin, Power power){
+void digitalWrite(int pin, int power){
     //cout << "digitalWrite on pin " + to_string(pin) + " power " + (power == HIGH ? "HIGH" : "LOW") << endl;
 }
