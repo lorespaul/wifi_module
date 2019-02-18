@@ -9,6 +9,9 @@
 #ifndef StepperCommand_h
 #define StepperCommand_h
 
+#define REVOLUTION_STEPS 200
+#define MM_PER_REVOLUTION 8.00
+
 #include "stepperCommon.h"
 
 namespace stp_motor {

@@ -9,8 +9,6 @@
 #ifndef stepperCommon_h
 #define stepperCommon_h
 
-#define REVOLUTION_STEPS 200
-#define MM_PER_REVOLUTION 8.00
 enum Power { LOW = 0, HIGH = 1 };
 
 unsigned long micros();
