@@ -1,3 +1,6 @@
+#include "Stepper.h"
+
+using namespace stepper_motor;
 
 const int stepsPerRevolution = 200;
 // dir pin / step pin / direction / step
@@ -11,10 +14,17 @@ int penMotor[2] = {2,3};
 
 bool loopEven = true;
 
+Stepper x(6,7);
+Stepper y(4,5);
+StepperCommand xCommand;
+StepperCommand yCommand;
+
 void setup() {
   // initialize the serial port:
   Serial.begin(9600);
 
+  x.begin();
+  y.begin();
   pinMode(motors[0][0], OUTPUT);
   pinMode(motors[0][1], OUTPUT);
   pinMode(motors[1][0], OUTPUT);

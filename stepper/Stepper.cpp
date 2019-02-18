@@ -10,8 +10,7 @@
 #include "Stepper.h"
 #include "StepperCommand.h"
 
-using namespace std;
-using namespace stp_motor;
+using namespace stepper_motor;
 
 Stepper::Stepper(int directionPin, int stepPin, bool bispositionStepper){
     this->bispositionStepper = bispositionStepper;

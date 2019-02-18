@@ -12,7 +12,7 @@
 #define REVOLUTION_STEPS 200
 #define MM_PER_REVOLUTION 8.00
 
-namespace stp_motor {
+namespace stepper_motor {
     
     class StepperCommand {
         

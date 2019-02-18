@@ -11,7 +11,7 @@
 
 #include "StepperCommand.h"
 
-namespace stp_motor {
+namespace stepper_motor {
     
     class Stepper {
         

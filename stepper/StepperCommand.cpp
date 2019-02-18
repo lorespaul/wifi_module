@@ -9,8 +9,7 @@
 #include <Arduino.h>
 #include "StepperCommand.h"
 
-using namespace std;
-using namespace stp_motor;
+using namespace stepper_motor;
 
 StepperCommand::StepperCommand(){
     //Serial.println("New StepperCommand");
