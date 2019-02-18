@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		437E41C22205C0AF00ED21E7 /* strappend.c in Sources */ = {isa = PBXBuildFile; fileRef = 437E41C12205C0AF00ED21E7 /* strappend.c */; };
 		437E41C92206079E00ED21E7 /* cpplink.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 437E41C72206079E00ED21E7 /* cpplink.cpp */; };
+		43D61ABB221B0F0F00DBBEDB /* Stepper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43D61AB9221B0F0F00DBBEDB /* Stepper.cpp */; };
+		43D61ABE221B0F2A00DBBEDB /* StepperCommand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43D61ABC221B0F2A00DBBEDB /* StepperCommand.cpp */; };
+		43D61AC0221B200000DBBEDB /* stepperCommon.h in Sources */ = {isa = PBXBuildFile; fileRef = 43D61ABF221B200000DBBEDB /* stepperCommon.h */; };
+		43D61AC2221B232C00DBBEDB /* stepperCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43D61AC1221B232C00DBBEDB /* stepperCommon.cpp */; };
+		43D61ACD221B345800DBBEDB /* Serial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43D61ACC221B345800DBBEDB /* Serial.cpp */; };
 		43E067F02203A3980044BEA1 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43E067EF2203A3980044BEA1 /* main.cpp */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +33,14 @@
 		437E41C12205C0AF00ED21E7 /* strappend.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = strappend.c; sourceTree = "<group>"; };
 		437E41C72206079E00ED21E7 /* cpplink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpplink.cpp; sourceTree = "<group>"; };
 		437E41C82206079E00ED21E7 /* cpplink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cpplink.h; sourceTree = "<group>"; };
+		43D61AB9221B0F0F00DBBEDB /* Stepper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Stepper.cpp; sourceTree = "<group>"; };
+		43D61ABC221B0F2A00DBBEDB /* StepperCommand.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StepperCommand.cpp; sourceTree = "<group>"; };
+		43D61ABF221B200000DBBEDB /* stepperCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stepperCommon.h; sourceTree = "<group>"; };
+		43D61AC1221B232C00DBBEDB /* stepperCommon.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stepperCommon.cpp; sourceTree = "<group>"; };
+		43D61AC5221B2C5B00DBBEDB /* Stepper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Stepper.h; sourceTree = "<group>"; };
+		43D61AC6221B2C6D00DBBEDB /* StepperCommand.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StepperCommand.h; sourceTree = "<group>"; };
+		43D61AC8221B320900DBBEDB /* Serial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serial.h; sourceTree = "<group>"; };
+		43D61ACC221B345800DBBEDB /* Serial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Serial.cpp; sourceTree = "<group>"; };
 		43E067EC2203A3980044BEA1 /* cpptest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cpptest; sourceTree = BUILT_PRODUCTS_DIR; };
 		43E067EF2203A3980044BEA1 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		43E067F62203A3E10044BEA1 /* interface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = interface.h; sourceTree = "<group>"; };
@@ -68,6 +81,14 @@
 				437E41C12205C0AF00ED21E7 /* strappend.c */,
 				437E41C72206079E00ED21E7 /* cpplink.cpp */,
 				437E41C82206079E00ED21E7 /* cpplink.h */,
+				43D61AB9221B0F0F00DBBEDB /* Stepper.cpp */,
+				43D61AC5221B2C5B00DBBEDB /* Stepper.h */,
+				43D61ABC221B0F2A00DBBEDB /* StepperCommand.cpp */,
+				43D61AC6221B2C6D00DBBEDB /* StepperCommand.h */,
+				43D61AC1221B232C00DBBEDB /* stepperCommon.cpp */,
+				43D61ABF221B200000DBBEDB /* stepperCommon.h */,
+				43D61ACC221B345800DBBEDB /* Serial.cpp */,
+				43D61AC8221B320900DBBEDB /* Serial.h */,
 			);
 			path = cpptest;
 			sourceTree = "<group>";
@@ -128,9 +149,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43D61ABE221B0F2A00DBBEDB /* StepperCommand.cpp in Sources */,
 				43E067F02203A3980044BEA1 /* main.cpp in Sources */,
+				43D61AC0221B200000DBBEDB /* stepperCommon.h in Sources */,
+				43D61ACD221B345800DBBEDB /* Serial.cpp in Sources */,
 				437E41C92206079E00ED21E7 /* cpplink.cpp in Sources */,
 				437E41C22205C0AF00ED21E7 /* strappend.c in Sources */,
+				43D61AC2221B232C00DBBEDB /* stepperCommon.cpp in Sources */,
+				43D61ABB221B0F0F00DBBEDB /* Stepper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

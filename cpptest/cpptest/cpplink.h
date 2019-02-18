@@ -6,8 +6,8 @@
 //  Copyright © 2019 lore. All rights reserved.
 //
 
-#ifndef cpplink_hpp
-#define cpplink_hpp
+#ifndef cpplink_h
+#define cpplink_h
 
 #include <stdio.h>
 

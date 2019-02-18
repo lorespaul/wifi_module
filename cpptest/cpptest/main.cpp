@@ -11,8 +11,16 @@
 #include <string>
 #include "cpplink.h"
 #include "interface.h"
+#include <unistd.h>
+
+#include "Stepper.h"
+#include "StepperCommand.h"
+#include "stepperCommon.h"
+#include "Serial.h"
 
 using namespace std;
+using namespace stp_motor;
+using namespace serial;
 
 #define MAX_CLIENTS 10
 #define MAX_SERVER 3
@@ -105,26 +113,60 @@ int convertIntToChar(char convert[]){
 char testStatic[10];
 
 
+Stepper x(6, 7);
+Stepper y(4, 5);
+Stepper z(2, 3, true);
+
+
 int main(int argc, const char * argv[]) {
+    
+    StepperCommand xCommand;
+    StepperCommand yCommand;
+    
+    int i;
+    int counter = 0;
+    
+    for(i=0;i<100000000;i++){
+    
+        if(!xCommand.isCommandInExecution() && !yCommand.isCommandInExecution()){
+            if(counter == 6)
+                break;
+            
+            z.makeRevolution();
+            z.invertRotation();
+                
+            Serial::println("Begin commands");
+            xCommand.begin(200, 1000);
+            yCommand.begin(200, 300);
+            counter++;
+        }
+        
+        x.makeStepAsync(xCommand);
+        y.makeStepAsync(yCommand);
+        
+    }
+    
+    cout << "iteration: " + to_string(i) << endl;
+    
     //char abc[20] = "ciao";
     //char test[] = "ne";
 //    if(&test[0] == test){
 //        printf("%s\n", "aia");
 //    }
-    test();
-    //char* a = testStatic;
-//    referenceTest(a);
-    check(&convertIntToChar);
-    //strappend(AT, test);
-    //_charAt(test, 9);
-    //substr((char*)"ciaonissimo", test, 2, 5);
-    isNumber((char*)"345");
-    split((char*)"ciao,bella,ciao", ',', support);
-    streq((char*)"uno", (char*)"unooo");
-    streq((char*)"uno", (char*)"uno");
-    strstart((char*)"unoooo", (char*)"uno");
-    strstart((char*)"uoooo", (char*)"uno");
-    char test2[] = "\"ciao\"";
-    charremove(test2, '"');
+//    test();
+//    //char* a = testStatic;
+////    referenceTest(a);
+//    check(&convertIntToChar);
+//    //strappend(AT, test);
+//    //_charAt(test, 9);
+//    //substr((char*)"ciaonissimo", test, 2, 5);
+//    isNumber((char*)"345");
+//    split((char*)"ciao,bella,ciao", ',', support);
+//    streq((char*)"uno", (char*)"unooo");
+//    streq((char*)"uno", (char*)"uno");
+//    strstart((char*)"unoooo", (char*)"uno");
+//    strstart((char*)"uoooo", (char*)"uno");
+//    char test2[] = "\"ciao\"";
+//    charremove(test2, '"');
     return 0;
 }
