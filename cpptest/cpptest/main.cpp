@@ -135,7 +135,7 @@ int main(int argc, const char * argv[]) {
             z.makeRevolution();
             z.invertRotation();
                 
-            Serial::println("Begin commands");
+            Serial.println("Begin commands");
             xCommand.begin(24, 1000);
             yCommand.begin(50, 1000);
             counter++;

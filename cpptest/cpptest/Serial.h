@@ -13,7 +13,14 @@
 
 namespace serial {
 
-    class Serial {
+    class FakeSerial {
+        
+        FakeSerial(){
+            std::cout << "New FakeSerial" << std::endl;
+        }
+        ~FakeSerial(){
+            std::cout << "Destroy FakeSerial" << std::endl;
+        }
         
     public:
         static void println(std::string toPrint){
@@ -23,5 +30,7 @@ namespace serial {
     };
 
 }
+
+extern serial::FakeSerial Serial;
 
 #endif /* Serial_hpp */

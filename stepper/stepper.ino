@@ -23,8 +23,8 @@ void setup() {
   // initialize the serial port:
   Serial.begin(9600);
 
-  x.begin();
-  y.begin();
+  //x.begin();
+  //y.begin();
   pinMode(motors[0][0], OUTPUT);
   pinMode(motors[0][1], OUTPUT);
   pinMode(motors[1][0], OUTPUT);

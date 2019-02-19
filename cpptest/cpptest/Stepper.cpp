@@ -23,14 +23,14 @@ Stepper::Stepper(int directionPin, int stepPin, bool bispositionStepper){
     this->direction = LOW;
     this->step = LOW;
     digitalWrite(directionPin, this->direction);
-    Serial::println("New Stepper");
+    Serial.println("New Stepper");
 }
 
 Stepper::Stepper(int directionPin, int stepPin) : Stepper(directionPin, stepPin, false){
 }
 
 Stepper::~Stepper(){
-    Serial::println("Destroy Stepper");
+    Serial.println("Destroy Stepper");
 }
 
 void Stepper::makeStepAsync(StepperCommand &command){
@@ -61,7 +61,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
 
 void Stepper::makeSteps(int steps, int delayBetweenStepMillis){
     float halfDelay = delayBetweenStepMillis / 2.00;
-    //Serial::println(to_string(halfDelay));
+    //Serial.println(to_string(halfDelay));
     for(int i=0;i<steps;i++){
         digitalWrite(stepPin, HIGH);
         delayMicroseconds(halfDelay);
@@ -71,9 +71,9 @@ void Stepper::makeSteps(int steps, int delayBetweenStepMillis){
 }
 
 void Stepper::makeRevolution(){
-    Serial::println("Revolution begin");
+    Serial.println("Revolution begin");
     makeSteps(REVOLUTION_STEPS, 1000);
-    Serial::println("Revolution done");
+    Serial.println("Revolution done");
 }
 
 void Stepper::invertRotation(){

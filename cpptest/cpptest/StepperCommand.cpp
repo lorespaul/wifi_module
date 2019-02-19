@@ -17,7 +17,7 @@ using namespace stp_motor;
 using namespace serial;
 
 StepperCommand::StepperCommand(){
-    Serial::println("New StepperCommand");
+    Serial.println("New StepperCommand");
     this->inExecution = false;
     this->initTime = -1;
     this->lastStepTime = -1;
@@ -25,7 +25,7 @@ StepperCommand::StepperCommand(){
 }
 
 StepperCommand::~StepperCommand(){
-    Serial::println("Destroy StepperCommand");
+    Serial.println("Destroy StepperCommand");
 }
 
 //bool StepperCommand::begin(int stepsToExecute, int totalStepsTimeMillis){
@@ -59,7 +59,7 @@ void StepperCommand::end(){
     if(!stepsTerminated())
         return;
     
-    Serial::println("command end in " + to_string((micros() - this->initTime) / 1000) + " millis.");
+    Serial.println("command end in " + to_string((micros() - this->initTime) / 1000) + " millis.");
     this->inExecution = false;
     this->initTime = -1;
     this->lastStepTime = -1;
