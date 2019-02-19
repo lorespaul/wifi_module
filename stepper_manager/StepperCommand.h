@@ -30,7 +30,7 @@ namespace stepper_motor {
         
         //bool begin(int stepsToExecute, int totalStepsTimeMillis);
         bool start(int millimeters, int movementTimeMillis);
-        void finish();
+        void stop();
         void halfStepDone(unsigned long timestamp, int power);
         bool isCommandInExecution();
         bool canDoHalfStep(unsigned long timestamp);

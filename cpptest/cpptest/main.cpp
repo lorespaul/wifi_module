@@ -117,11 +117,11 @@ Stepper x(6, 7);
 Stepper y(4, 5);
 Stepper z(2, 3, true);
 
+StepperCommand xCommand;
+StepperCommand yCommand;
+
 
 int main(int argc, const char * argv[]) {
-    
-    StepperCommand xCommand;
-    StepperCommand yCommand;
     
     int i;
     int counter = 0;
@@ -136,8 +136,8 @@ int main(int argc, const char * argv[]) {
             z.invertRotation();
                 
             Serial.println("Begin commands");
-            xCommand.begin(24, 1000);
-            yCommand.begin(50, 1000);
+            xCommand.start(24, 1000);
+            yCommand.start(50, 1000);
             counter++;
         }
         

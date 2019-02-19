@@ -50,7 +50,7 @@ bool StepperCommand::start(int millimeters, int movementTimeMillis){
     return false;
 }
 
-void StepperCommand::finish(){
+void StepperCommand::stop(){
     if(!stepsTerminated())
         return;
     

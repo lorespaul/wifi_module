@@ -34,8 +34,8 @@ namespace stp_motor {
         // 8mm : 360 = 10mm : 450 -> 1cm
         
         //bool begin(int stepsToExecute, int totalStepsTimeMillis);
-        bool begin(int millimeters, int movementTimeMillis);
-        void end();
+        bool start(int millimeters, int movementTimeMillis);
+        void stop();
         void halfStepDone(unsigned long timestamp, int power);
         bool isCommandInExecution();
         bool canDoHalfStep(unsigned long timestamp);

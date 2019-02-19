@@ -43,7 +43,7 @@ StepperCommand::~StepperCommand(){
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
-bool StepperCommand::begin(int millimeters, int movementTimeMillis){
+bool StepperCommand::start(int millimeters, int movementTimeMillis){
     if(!isCommandInExecution()){
         this->inExecution = true;
         this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
@@ -55,7 +55,7 @@ bool StepperCommand::begin(int millimeters, int movementTimeMillis){
     return false;
 }
 
-void StepperCommand::end(){
+void StepperCommand::stop(){
     if(!stepsTerminated())
         return;
     

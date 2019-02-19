@@ -53,7 +53,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
         command.halfStepDone(timestamp, this->step);
         
         if(command.stepsTerminated()){
-            command.end();
+            command.stop();
         }
         
     }
