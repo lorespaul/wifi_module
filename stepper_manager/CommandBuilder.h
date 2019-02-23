@@ -1,0 +1,55 @@
+//
+//  CommandBuilder.h
+//
+//  Created by Lorenzo Daneo on 18/02/2019.
+//  Copyright © 2019 lore. All rights reserved.
+//
+
+#ifndef CommandBuilder_h
+#define CommandBuilder_h
+
+#define SPACE " "
+
+#define G 'G'    // imposta tipo comando
+#define F 'F'    // imposta velocità (mm/millis)
+#define X 'X'    // coordinata asse x
+#define Y 'Y'    // coordinata asse y
+#define Z 'Z'    // coordinata asse z
+#define I 'I'    // cerchio -> offset dal centro rispetto al punto di partenza su asse x
+#define J 'J'    // cerchio -> offset dal centro rispetto al punto di partenza su asse y
+
+#define G00 "00" // movimento veloce
+#define G01 "01" // movimento lento o a velocità prestabilita (vedi fMode 'F')
+#define G02 "02" // movimento insenso orario
+#define G03 "03" // movimento insenso antiorario
+#define G28 "28" // vai alla posizione home
+
+#define F_DEFAULT 20
+#define G_MODE_CHARS 2
+
+#include "StepperCommand.h"
+
+namespace stepper_motor {
+    
+    class CommandBuilder {
+
+    private:
+        char gMode[G_MODE_CHARS];
+        int fMode;
+        int xPos;
+        int yPos;
+        int zPos;
+        int iOffset;
+        int jOffset;
+        void prepareContext(char stringCommand[]);
+        
+    public:
+        CommandBuilder();
+        ~CommandBuilder();
+        void build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
+        
+    };
+    
+}
+
+#endif /* CommandBuilder_h */

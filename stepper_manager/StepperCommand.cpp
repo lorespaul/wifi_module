@@ -1,6 +1,5 @@
 //
 //  StepperCommand.cpp
-//  cpptest
 //
 //  Created by Lorenzo Daneo on 18/02/2019.
 //  Copyright © 2019 lore. All rights reserved.
@@ -39,7 +38,7 @@ StepperCommand::~StepperCommand(){
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
 bool StepperCommand::start(int millimeters, int movementTimeMillis){
-    if(!isCommandInExecution()){
+    if(!isInExecution()){
         this->inExecution = true;
         this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
         this->initTime = micros();
@@ -67,7 +66,7 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
         this->stepsToExecute--;
 }
 
-bool StepperCommand::isCommandInExecution(){
+bool StepperCommand::isInExecution(){
     return this->inExecution;
 }
 

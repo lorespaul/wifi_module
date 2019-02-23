@@ -1,6 +1,5 @@
 //
 //  Stepper.h
-//  cpptest
 //
 //  Created by Lorenzo Daneo on 18/02/2019.
 //  Copyright © 2019 lore. All rights reserved.
@@ -28,8 +27,8 @@ namespace stepper_motor {
         ~Stepper();
         void begin();
         virtual void makeStepAsync(StepperCommand &command);
-        void makeSteps(int steps, int delayBetweenStepMillis);
-        void makeRevolution();
+        //void makeSteps(int steps, int delayBetweenStepMillis);
+        //void makeRevolution();
         void invertRotation();
         
     };

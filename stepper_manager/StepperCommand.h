@@ -1,6 +1,5 @@
 //
 //  StepperCommand.h
-//  cpptest
 //
 //  Created by Lorenzo Daneo on 18/02/2019.
 //  Copyright © 2019 lore. All rights reserved.
@@ -32,7 +31,7 @@ namespace stepper_motor {
         bool start(int millimeters, int movementTimeMillis);
         void stop();
         void halfStepDone(unsigned long timestamp, int power);
-        bool isCommandInExecution();
+        bool isInExecution();
         bool canDoHalfStep(unsigned long timestamp);
         bool stepsTerminated();
         

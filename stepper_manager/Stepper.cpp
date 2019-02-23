@@ -1,6 +1,5 @@
 //
 //  Stepper.cpp
-//  cpptest
 //
 //  Created by Lorenzo Daneo on 18/02/2019.
 //  Copyright © 2019 lore. All rights reserved.
@@ -8,7 +7,6 @@
 
 #include <Arduino.h>
 #include "Stepper.h"
-#include "StepperCommand.h"
 
 using namespace stepper_motor;
 
@@ -42,7 +40,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
     }
     
     unsigned long timestamp = micros();
-    if(command.isCommandInExecution() && command.canDoHalfStep(timestamp)){
+    if(command.isInExecution() && command.canDoHalfStep(timestamp)){
         
         if(step == LOW){
             this->step = HIGH;
@@ -55,13 +53,14 @@ void Stepper::makeStepAsync(StepperCommand &command){
         command.halfStepDone(timestamp, this->step);
         
         if(command.stepsTerminated()){
+            digitalWrite(this->stepPin, LOW);
             command.stop();
         }
         
     }
 }
 
-void Stepper::makeSteps(int steps, int delayBetweenStepMillis){
+/*void Stepper::makeSteps(int steps, int delayBetweenStepMillis){
     float halfDelay = delayBetweenStepMillis / 2.00;
     //Serial::println(to_string(halfDelay));
     for(int i=0;i<steps;i++){
@@ -76,7 +75,7 @@ void Stepper::makeRevolution(){
     //Serial.println("Revolution begin");
     makeSteps(REVOLUTION_STEPS, 1000);
     //Serial.println("Revolution done");
-}
+}*/
 
 void Stepper::invertRotation(){
     if(this->direction == LOW){

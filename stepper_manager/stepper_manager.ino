@@ -1,5 +1,8 @@
 #include "Stepper.h"
+#include "CommandBuilder.h";
 
+#define ZC '\0'
+#define NL '\n'
 #define CR '\r'
 #define BUFFER_LENGTH 100
 
@@ -13,6 +16,9 @@ Stepper z(2, 3, true);
 
 StepperCommand xCommand;
 StepperCommand yCommand;
+StepperCommand zCommand;
+
+CommandBuilder commandBuilder;
 
 void setup() {
   Serial.begin(115200);
@@ -25,31 +31,38 @@ void setup() {
 void loop() {
   
   if(allMotorFinishACommand()){
-    z.makeRevolution();
-    z.invertRotation();
-    
-    xCommand.start(24, 1000);    
-    yCommand.start(50, 1000);
 
-    x.invertRotation();
-    y.invertRotation();
+    if(readCommandFromSerial() > 0){
+      //z.makeRevolution();
+      //z.invertRotation();
+      /*xCommand.start(24, 800);    
+      yCommand.start(50, 800);
+      x.invertRotation();
+      y.invertRotation();*/
+      commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+    }
   }
 
   x.makeStepAsync(xCommand);
   y.makeStepAsync(yCommand);
+  z.makeStepAsync(zCommand);
 
 }
 
 
 bool allMotorFinishACommand(){
-  return !xCommand.isCommandInExecution() && !yCommand.isCommandInExecution();
+  return !xCommand.isInExecution() && !yCommand.isInExecution() && !zCommand.isInExecution();
 }
 
-void readCommandFromSerial(){
+int readCommandFromSerial(){
   if (Serial.available()){
-    int bytes = Serial.readBytesUntil(CR, readBuffer, BUFFER_LENGTH);
-    if(readBuffer[bytes-1] == '\n')
-      readBuffer[bytes-1] = CR;
-    readBuffer[bytes] = CR;
+    memset(readBuffer, ZC, BUFFER_LENGTH);
+    int bytes = Serial.readBytesUntil(NL, readBuffer, BUFFER_LENGTH);
+    if(bytes == 1 && (readBuffer[0] == NL || readBuffer[0] == CR))
+      return 0;
+    //G01 X563 Y7 Z34 F567
+    Serial.println(readBuffer);
+    return bytes;
   }
+  return 0;
 }

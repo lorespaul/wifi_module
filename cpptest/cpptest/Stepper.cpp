@@ -8,8 +8,6 @@
 
 #include <iostream>
 #include "Stepper.h"
-#include "StepperCommand.h"
-#include "stepperCommon.h"
 #include "Serial.h"
 
 using namespace std;
