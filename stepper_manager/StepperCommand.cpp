@@ -22,25 +22,18 @@ StepperCommand::~StepperCommand(){
     //Serial.println("Destroy StepperCommand");
 }
 
-//bool StepperCommand::start(int stepsToExecute, int totalStepsTimeMillis){
-//    if(!isCommandInExecution()){
-//        this->inExecution = true;
-//        this->stepsToExecute = stepsToExecute;
-//        this->initTime = micros();
-//        this->lastStepTime = this->initTime;
-//        this->halfStepInterval = 500 * (totalStepsTimeMillis / (float)stepsToExecute);
-//        return true;
-//    }
-//    return false;
-//}
+int StepperCommand::getDirection(){
+    return this->direction;
+}
 
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
-bool StepperCommand::start(int millimeters, int movementTimeMillis){
+bool StepperCommand::start(int millimeters, int movementTimeMillis, int dir){
     if(!isInExecution()){
         this->inExecution = true;
         this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
+        this->direction = dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = 500 * (movementTimeMillis / (float)this->stepsToExecute);

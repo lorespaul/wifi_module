@@ -8,10 +8,13 @@
 #ifndef CommandBuilder_h
 #define CommandBuilder_h
 
+#include <Arduino.h>
+#include "StepperCommand.h"
+
 #define SPACE " "
 
 #define G 'G'    // imposta tipo comando
-#define F 'F'    // imposta velocità (mm/millis)
+#define F 'F'    // imposta velocità (mm/sec)
 #define X 'X'    // coordinata asse x
 #define Y 'Y'    // coordinata asse y
 #define Z 'Z'    // coordinata asse z
@@ -27,26 +30,37 @@
 #define F_DEFAULT 20
 #define G_MODE_CHARS 2
 
-#include "StepperCommand.h"
+#define GO_AHEAD LOW
+#define GO_BACK HIGH
+
+#define STD_F_FAST 30.00  // mm/sec
+#define STD_F_SLOW 15.00  // mm/sec
 
 namespace stepper_motor {
     
     class CommandBuilder {
 
-    private:
-        char gMode[G_MODE_CHARS];
-        int fMode;
-        int xPos;
-        int yPos;
-        int zPos;
-        int iOffset;
-        int jOffset;
-        void prepareContext(char stringCommand[]);
-        
-    public:
-        CommandBuilder();
-        ~CommandBuilder();
-        void build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
+        private:
+            char gMode[G_MODE_CHARS];
+            unsigned int fMode;
+            int xLastPos;
+            int yLastPos;
+            int zLastPos;
+            int xPos;
+            int yPos;
+            int zPos;
+            int iOffset;
+            int jOffset;
+            void prepareContext(char stringCommand[]);
+            bool gModeEq(char comparison[]);
+            int computeStartEndPosDistance(int startPos, int endPos);
+            int computeSpeedMillis(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
+            void buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis);
+            
+        public:
+            CommandBuilder();
+            ~CommandBuilder();
+            void build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
         
     };
     

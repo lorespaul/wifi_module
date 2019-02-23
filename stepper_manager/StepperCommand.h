@@ -15,25 +15,25 @@ namespace stepper_motor {
     
     class StepperCommand {
         
-    private:
-        bool inExecution;
-        int stepsToExecute;
-        unsigned long initTime;
-        unsigned long lastStepTime;
-        unsigned long halfStepInterval;
+        private:
+            bool inExecution;
+            int stepsToExecute;
+            int direction;
+            unsigned long initTime;
+            unsigned long lastStepTime;
+            unsigned long halfStepInterval;
         
         
-    public:
-        StepperCommand();
-        ~StepperCommand();
-        
-        //bool begin(int stepsToExecute, int totalStepsTimeMillis);
-        bool start(int millimeters, int movementTimeMillis);
-        void stop();
-        void halfStepDone(unsigned long timestamp, int power);
-        bool isInExecution();
-        bool canDoHalfStep(unsigned long timestamp);
-        bool stepsTerminated();
+        public:
+            StepperCommand();
+            ~StepperCommand();
+            int getDirection();
+            bool start(int millimeters, int movementTimeMillis, int dir);
+            void stop();
+            void halfStepDone(unsigned long timestamp, int power);
+            bool isInExecution();
+            bool canDoHalfStep(unsigned long timestamp);
+            bool stepsTerminated();
         
     };
     

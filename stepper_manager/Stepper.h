@@ -14,22 +14,21 @@ namespace stepper_motor {
     
     class Stepper {
         
-    private:
-        bool bispositionStepper;
-        int directionPin;
-        int stepPin;
-        int direction;
-        int step;
-        
-    public:
-        Stepper(int directionPin, int stepPin);
-        Stepper(int directionPin, int stepPin, bool bispositionStepper);
-        ~Stepper();
-        void begin();
-        virtual void makeStepAsync(StepperCommand &command);
-        //void makeSteps(int steps, int delayBetweenStepMillis);
-        //void makeRevolution();
-        void invertRotation();
+        private:
+            int directionPin;
+            int stepPin;
+            int direction;
+            int step;
+            void invertRotation();
+            void setDirection(int dir);
+            
+        public:
+            Stepper(int directionPin, int stepPin);
+            Stepper(int directionPin, int stepPin, bool bispositionStepper);
+            ~Stepper();
+            void begin();
+            void prepareToMakeStepsAsync(StepperCommand &command);
+            void makeStepAsync(StepperCommand &command);
         
     };
     
