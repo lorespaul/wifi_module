@@ -29,14 +29,15 @@ void Stepper::begin(){
     digitalWrite(this->stepPin, this->step);
 }
 
-void Stepper::prepareToMakeStepsAsync(StepperCommand &command){
+/*void Stepper::prepareToMakeStepsAsync(StepperCommand &command){
     this->setDirection(command.getDirection());
-}
+}*/
 
 void Stepper::makeStepAsync(StepperCommand &command){
     
     unsigned long timestamp = micros();
     if(command.isInExecution() && command.canDoHalfStep(timestamp)){
+        this->manageDirection(command.getDirection());
         
         if(step == LOW){
             this->step = HIGH;
@@ -67,8 +68,9 @@ void Stepper::invertRotation(){
 }
 
 
-void Stepper::setDirection(int dir){
+void Stepper::manageDirection(int dir){
     if(this->direction != dir){
-        this->invertRotation();
+        this->direction = dir;
+        digitalWrite(this->directionPin, dir);
     }
 }

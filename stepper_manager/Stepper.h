@@ -20,14 +20,14 @@ namespace stepper_motor {
             int direction;
             int step;
             void invertRotation();
-            void setDirection(int dir);
+            void manageDirection(int dir);
             
         public:
             Stepper(int directionPin, int stepPin);
             Stepper(int directionPin, int stepPin, bool bispositionStepper);
             ~Stepper();
             void begin();
-            void prepareToMakeStepsAsync(StepperCommand &command);
+            //void prepareToMakeStepsAsync(StepperCommand &command);
             void makeStepAsync(StepperCommand &command);
         
     };

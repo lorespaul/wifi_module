@@ -29,7 +29,7 @@ int StepperCommand::getDirection(){
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
-bool StepperCommand::start(int millimeters, int movementTimeMillis, int dir){
+bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int dir){
     if(!isInExecution()){
         this->inExecution = true;
         this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
@@ -37,6 +37,17 @@ bool StepperCommand::start(int millimeters, int movementTimeMillis, int dir){
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = 500 * (movementTimeMillis / (float)this->stepsToExecute);
+        Serial.print("In millis="); 
+        Serial.println(movementTimeMillis);
+        Serial.print("Half speed micros="); 
+        Serial.println(this->halfStepInterval);
+        return true;
+    }
+    return false;
+}
+
+bool StepperCommand::startCircular(int millimeters, int movementTimeMillis, int dir){
+    if(this->startLinear(millimeters, movementTimeMillis, dir)){
         return true;
     }
     return false;
@@ -46,7 +57,9 @@ void StepperCommand::stop(){
     if(!stepsTerminated())
         return;
     
-    //Serial.println("command end in " + to_string((micros() - this->initTime) / 1000) + " millis.");
+    Serial.print("Command end in ");
+    Serial.print((micros() - this->initTime) / 1000);
+    Serial.println(" millis.");
     this->inExecution = false;
     this->initTime = -1;
     this->lastStepTime = -1;

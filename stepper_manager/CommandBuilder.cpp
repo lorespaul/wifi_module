@@ -111,7 +111,7 @@ int CommandBuilder::computeStartEndPosDistance(int startPos, int endPos){
     return abs(startPos - endPos);
 }
 
-int CommandBuilder::computeSpeedMillis(float mmPerSec, int xEndPos, int yEndPos, int zEndPos){
+int CommandBuilder::computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos){
     int mmX = this->computeStartEndPosDistance(xLastPos, xEndPos);
     int mmY = this->computeStartEndPosDistance(yLastPos, yEndPos);
     int mmZ = this->computeStartEndPosDistance(zLastPos, zEndPos);
@@ -120,9 +120,6 @@ int CommandBuilder::computeSpeedMillis(float mmPerSec, int xEndPos, int yEndPos,
     return 1000 * (result / mmPerSec);
 }
 
-//void CommandBuilder::buildSingleCircular(){
-//}
-
 void CommandBuilder::buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis){
     if(endPos > INT_MIN){
         int dir;
@@ -130,40 +127,52 @@ void CommandBuilder::buildSingleLinear(StepperCommand &command, int *startPos, i
         else dir = GO_BACK;
         int distance = this->computeStartEndPosDistance(*startPos, endPos);
         if(distance > 0){
-            command.start(distance, speedMillis, dir);
+            command.startLinear(distance, speedMillis, dir);
             *startPos = endPos;
         }
     }
+}
+
+
+int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos){
+    int mmX = this->computeStartEndPosDistance(xLastPos, xEndPos);
+    int mmY = this->computeStartEndPosDistance(yLastPos, yEndPos);
+    return 0;
+}
+
+void CommandBuilder::buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int speedMillis){
 }
 
 void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
     this->prepareContext(stringCommand);
     int speedMillis;
     if(this->gModeEq(G00)){
-        //Serial.println("Mode G00");
-        speedMillis = this->computeSpeedMillis(STD_F_FAST, xPos, yPos, zPos);
+        Serial.println("Mode G00");
+        speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, xPos, yPos, zPos);
         this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
     } else if(this->gModeEq(G01)){
-        //Serial.println("Mode G01");
-        speedMillis = this->fMode > 0 ? this->fMode : this->computeSpeedMillis(STD_F_FAST, xPos, yPos, zPos);
+        Serial.println("Mode G01");
+        speedMillis = this->fMode > 0 ? this->computeSpeedMillisLinear(this->fMode, xPos, yPos, zPos) : this->computeSpeedMillisLinear(STD_F_SLOW, xPos, yPos, zPos);
         this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
     } else if(this->gModeEq(G02)){
-        //Serial.println("Mode G02");
+        Serial.println("Mode G02");
         
     } else if(this->gModeEq(G03)){
-        //Serial.println("Mode G03");
+        Serial.println("Mode G03");
         
     } else if(this->gModeEq(G28)){
-        //Serial.println("Mode G28");
-        speedMillis = this->computeSpeedMillis(STD_F_FAST, 0, 0, 0);
+        Serial.println("Mode G28");
+        speedMillis = this->computeSpeedMillisLinear(STD_F_SLOW, 0, 0, 0);
         this->buildSingleLinear(xCommand, &xLastPos, 0, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, 0, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, 0, speedMillis);
     }
+    Serial.print("Speed=");
+    Serial.println(speedMillis);
     Serial.print("X=");
     Serial.println(xLastPos);
     Serial.print("Y=");

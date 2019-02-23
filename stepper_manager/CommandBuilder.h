@@ -33,8 +33,8 @@
 #define GO_AHEAD LOW
 #define GO_BACK HIGH
 
-#define STD_F_FAST 30.00  // mm/sec
-#define STD_F_SLOW 15.00  // mm/sec
+#define STD_F_FAST 60.00  // mm/sec
+#define STD_F_SLOW 30.00  // mm/sec
 
 namespace stepper_motor {
     
@@ -54,8 +54,12 @@ namespace stepper_motor {
             void prepareContext(char stringCommand[]);
             bool gModeEq(char comparison[]);
             int computeStartEndPosDistance(int startPos, int endPos);
-            int computeSpeedMillis(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
+            
+            int computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
             void buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis);
+            
+            int computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos);
+            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int speedMillis);
             
         public:
             CommandBuilder();

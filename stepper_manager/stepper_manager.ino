@@ -30,18 +30,8 @@ void setup() {
 
 void loop() {
     if(allMotorFinishACommand()){
-
         if(readCommandFromSerial() > 0){
-          //z.makeRevolution();
-          //z.invertRotation();
-          /*xCommand.start(24, 800);    
-          yCommand.start(50, 800);
-          x.invertRotation();
-          y.invertRotation();*/
           commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
-          x.prepareToMakeStepsAsync(xCommand);
-          y.prepareToMakeStepsAsync(yCommand);
-          z.prepareToMakeStepsAsync(zCommand);
         }
     }
 
