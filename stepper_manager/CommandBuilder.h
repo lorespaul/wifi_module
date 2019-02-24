@@ -36,6 +36,7 @@
 #define STD_F_FAST 60.00  // mm/sec
 #define STD_F_SLOW 30.00  // mm/sec
 
+
 namespace stepper_motor {
     
     class CommandBuilder {
@@ -53,13 +54,16 @@ namespace stepper_motor {
             int jOffset;
             void prepareContext(char stringCommand[]);
             bool gModeEq(char comparison[]);
-            int computeStartEndPosDistance(int startPos, int endPos);
             
+            int computeStartEndPosDistanceLinear(int startPos, int endPos);
             int computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
             void buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis);
-            
+
+            int computeStartEndPosDistanceCircularProjection(int startPos, int endPos, int offset, bool clockwise, bool up);
             int computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos);
-            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int speedMillis);
+            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int offset, bool clockwise, bool up, int speedMillis);
+
+            double computeRadius();
             
         public:
             CommandBuilder();

@@ -27,7 +27,6 @@ namespace stepper_motor {
             Stepper(int directionPin, int stepPin, bool bispositionStepper);
             ~Stepper();
             void begin();
-            //void prepareToMakeStepsAsync(StepperCommand &command);
             void makeStepAsync(StepperCommand &command);
         
     };

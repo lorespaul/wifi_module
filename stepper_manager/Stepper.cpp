@@ -29,9 +29,6 @@ void Stepper::begin(){
     digitalWrite(this->stepPin, this->step);
 }
 
-/*void Stepper::prepareToMakeStepsAsync(StepperCommand &command){
-    this->setDirection(command.getDirection());
-}*/
 
 void Stepper::makeStepAsync(StepperCommand &command){
     
@@ -39,19 +36,14 @@ void Stepper::makeStepAsync(StepperCommand &command){
     if(command.isInExecution() && command.canDoHalfStep(timestamp)){
         this->manageDirection(command.getDirection());
         
-        if(step == LOW){
-            this->step = HIGH;
-            digitalWrite(this->stepPin, HIGH);
-        } else if(step == HIGH){
-            this->step = LOW;
-            digitalWrite(this->stepPin, LOW);
-        }
+        this->step = (this->step + 1) % 2;
+        digitalWrite(this->stepPin, this->step);
         
         command.halfStepDone(timestamp, this->step);
         
         if(command.stepsTerminated()){
             digitalWrite(this->stepPin, LOW);
-            command.stop();
+            command.stop(timestamp);
         }
         
     }

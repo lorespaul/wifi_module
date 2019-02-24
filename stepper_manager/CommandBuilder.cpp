@@ -6,6 +6,7 @@
 //
 
 #include <limits.h>
+//#include <math.h>
 #include "CommandBuilder.h"
 
 using namespace stepper_motor;
@@ -106,18 +107,18 @@ bool CommandBuilder::gModeEq(char comparison[]){
     return true;
 }
 
-int CommandBuilder::computeStartEndPosDistance(int startPos, int endPos){
+int CommandBuilder::computeStartEndPosDistanceLinear(int startPos, int endPos){
     if(endPos == INT_MIN) return 0;
     return abs(startPos - endPos);
 }
 
 int CommandBuilder::computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos){
-    int mmX = this->computeStartEndPosDistance(xLastPos, xEndPos);
-    int mmY = this->computeStartEndPosDistance(yLastPos, yEndPos);
-    int mmZ = this->computeStartEndPosDistance(zLastPos, zEndPos);
-    int result = sqrt(pow(mmX, 2) + pow(mmY, 2));
+    int mmX = this->computeStartEndPosDistanceLinear(xLastPos, xEndPos);
+    int mmY = this->computeStartEndPosDistanceLinear(yLastPos, yEndPos);
+    int mmZ = this->computeStartEndPosDistanceLinear(zLastPos, zEndPos);
+    double result = sqrt(pow(mmX, 2) + pow(mmY, 2));
     result = sqrt(pow(result, 2) + pow(mmZ, 2));
-    return 1000 * (result / mmPerSec);
+    return 1000 * (result / (float)mmPerSec);
 }
 
 void CommandBuilder::buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis){
@@ -125,7 +126,7 @@ void CommandBuilder::buildSingleLinear(StepperCommand &command, int *startPos, i
         int dir;
         if(endPos > *startPos) dir = GO_AHEAD;
         else dir = GO_BACK;
-        int distance = this->computeStartEndPosDistance(*startPos, endPos);
+        int distance = this->computeStartEndPosDistanceLinear(*startPos, endPos);
         if(distance > 0){
             command.startLinear(distance, speedMillis, dir);
             *startPos = endPos;
@@ -134,13 +135,78 @@ void CommandBuilder::buildSingleLinear(StepperCommand &command, int *startPos, i
 }
 
 
-int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos){
-    int mmX = this->computeStartEndPosDistance(xLastPos, xEndPos);
-    int mmY = this->computeStartEndPosDistance(yLastPos, yEndPos);
-    return 0;
+double CommandBuilder::computeRadius(){
+    return sqrt(pow(iOffset, 2) + pow(jOffset, 2));
 }
 
-void CommandBuilder::buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int speedMillis){
+int CommandBuilder::computeStartEndPosDistanceCircularProjection(int startPos, int endPos, int offset, bool clockwise, bool up){
+    if(endPos == INT_MIN) return 0;
+    int radius = this->computeRadius();
+    int result;
+    Serial.println(clockwise);
+    Serial.println(up);
+    if((clockwise && up) || (!clockwise && !up)){
+        if(endPos > startPos){
+            result = abs(endPos - startPos);
+        } else {
+            int mid = offset < 0 ? radius - abs(offset) : radius + abs(offset);
+            result = mid + abs(startPos + mid - endPos);
+        }
+    } else {
+        if(endPos < startPos){
+            result = abs(startPos - endPos);
+        } else {
+            int mid = offset < 0 ? radius + abs(offset) : radius - abs(offset);
+            result = mid + abs(endPos - startPos - mid);
+        }
+    }
+    Serial.print("Proj=");
+    Serial.println(result);
+    return result;
+}
+
+
+int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos){
+    int mmX = this->computeStartEndPosDistanceLinear(xLastPos, xEndPos);
+    int mmY = this->computeStartEndPosDistanceLinear(yLastPos, yEndPos);
+    
+    double radius = this->computeRadius();
+    int xCenterPos = xLastPos + iOffset;
+    int yCenterPos = yLastPos + jOffset;
+    int mmEndX = this->computeStartEndPosDistanceLinear(xCenterPos, xEndPos);
+    int mmEndY = this->computeStartEndPosDistanceLinear(yCenterPos, yEndPos);
+    if(sqrt(pow(mmEndX, 2) + pow(mmEndY, 2)) != radius)
+        return -1;
+    
+    double rope = sqrt(pow(mmX, 2) + pow(mmY, 2));
+    double angle = (asin(rope / (double)(2 * radius)) * 180 / PI) * 2;
+    double girth = PI * 2 * radius;
+    double arch = (girth * angle) / 360.00;
+    Serial.print("Arch=");
+    Serial.println(arch);
+    return 1000 * (arch / (float)mmPerSec);
+}
+
+void CommandBuilder::buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int offset, bool clockwise, bool up, int speedMillis){
+    if(endPos > INT_MIN){
+        int dir;
+        if(endPos > *startPos || (endPos == *startPos && clockwise)) dir = GO_AHEAD;
+        else dir = GO_BACK;
+        int distance = this->computeStartEndPosDistanceCircularProjection(*startPos, endPos, offset, clockwise, up);
+        if(distance > 0){
+            //(int mmFromProjection, int mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising)
+            int radius = this->computeRadius();
+            command.startCircular(distance, radius, speedMillis, abs((100 * offset) / radius), dir, !((offset > 0 && clockwise && up) || 
+                                                                                                    (offset > 0 && !clockwise && !up) || 
+                                                                                                    (offset < 0 && clockwise && !up) || 
+                                                                                                    (offset < 0 && !clockwise && up)));
+            /*command.startCircular(distance, radius, speedMillis, abs((100 * offset) / radius), dir, (offset >= 0 && clockwise && up) || 
+                                                                                                    (offset > 0 && !clockwise && !up) || 
+                                                                                                    (offset < 0 && clockwise && !up) || 
+                                                                                                    (offset <= 0 && !clockwise && up));*/
+            *startPos = endPos;
+        }
+    }
 }
 
 void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
@@ -160,13 +226,25 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
         this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
     } else if(this->gModeEq(G02)){
         Serial.println("Mode G02");
-        
+        speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos) : this->computeSpeedMillisCircular(STD_F_SLOW, xPos, yPos);
+        if(speedMillis > -1){
+            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, true, (iOffset > 0 && jOffset <= 0) || (iOffset < 0 && jOffset < 0) || iOffset == 0, speedMillis);
+            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, true, (jOffset > 0 && iOffset <= 0) || (jOffset < 0 && iOffset < 0) || jOffset == 0, speedMillis);
+        } else {
+            Serial.println("Command not valid");
+        }
     } else if(this->gModeEq(G03)){
         Serial.println("Mode G03");
-        
+        speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos) : this->computeSpeedMillisCircular(STD_F_SLOW, xPos, yPos);
+        if(speedMillis > -1){
+            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, false, (iOffset > 0 && jOffset < 0) || (iOffset < 0 && jOffset <= 0) || iOffset == 0, speedMillis);
+            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, false, (jOffset > 0 && iOffset < 0) || (jOffset < 0 && iOffset <= 0) || jOffset == 0, speedMillis);
+        } else {
+            Serial.println("Command not valid");
+        }
     } else if(this->gModeEq(G28)){
         Serial.println("Mode G28");
-        speedMillis = this->computeSpeedMillisLinear(STD_F_SLOW, 0, 0, 0);
+        speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, 0, 0, 0);
         this->buildSingleLinear(xCommand, &xLastPos, 0, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, 0, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, 0, speedMillis);
@@ -180,5 +258,14 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
     Serial.print("Z=");
     Serial.println(zLastPos);
     //G00 X10 Y13 Z7
+    //G02 X60 Y60 I60 J0
+    //G02 X120 Y0 I0 J-60
+    
+    //G03 X0 Y0 I0 J-60
+
+    //G02 X120 Y0 I60 J0
+    //G03 X0 Y0 I-60 J0
+    //G02 X60 Y-60 I60 J0
+    //G02 X0 Y0 I-60 J0
     Serial.println("----");
 }

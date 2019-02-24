@@ -32,33 +32,63 @@ int StepperCommand::getDirection(){
 bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int dir){
     if(!isInExecution()){
         this->inExecution = true;
+        this->circular = false;
         this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
         this->direction = dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
-        this->halfStepInterval = 500 * (movementTimeMillis / (float)this->stepsToExecute);
-        Serial.print("In millis="); 
+        this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        /*Serial.print("In millis="); 
         Serial.println(movementTimeMillis);
         Serial.print("Half speed micros="); 
         Serial.println(this->halfStepInterval);
+        Serial.print("Total steps="); 
+        Serial.println(this->stepsToExecute);*/
         return true;
     }
     return false;
 }
 
-bool StepperCommand::startCircular(int millimeters, int movementTimeMillis, int dir){
-    if(this->startLinear(millimeters, movementTimeMillis, dir)){
+bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising){
+    if(!isInExecution()){
+        this->inExecution = true;
+        this->circular = true;
+        this->stepsToExecute = REVOLUTION_STEPS * mmFromProjection / MM_PER_REVOLUTION;
+        this->direction = initialDir;
+        this->initTime = micros();
+        this->lastStepTime = this->initTime;
+        int linearHalfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        this->circularMinHalfStepInterval = CIRCULAR_EXTREME_RANGE;
+        this->circularMaxHalfStepInterval = (linearHalfStepInterval * 2) - CIRCULAR_EXTREME_RANGE;
+        this->halfStepInterval = ((this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / 100.00 * startSpeedPercentual) + this->circularMinHalfStepInterval;
+        this->cicularIncrement = initialIncrising;
+        this->cicularDeIncrementInterval = (this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / (REVOLUTION_STEPS * mmRadius / MM_PER_REVOLUTION);
+        Serial.print("Total steps="); 
+        Serial.println(this->stepsToExecute);
+        Serial.print("In millis="); 
+        Serial.println(movementTimeMillis);
+        Serial.print("Init incr="); 
+        Serial.println(this->cicularIncrement);
+        Serial.print("Half speed micros="); 
+        Serial.println(this->halfStepInterval);
+        Serial.print("Linear half speed micros="); 
+        Serial.println(linearHalfStepInterval);
+        Serial.print("Start perc="); 
+        Serial.println(startSpeedPercentual);
+        Serial.print("Incr interval="); 
+        Serial.println(this->cicularDeIncrementInterval);
+        Serial.println("+++++++++++");
         return true;
     }
     return false;
 }
 
-void StepperCommand::stop(){
+void StepperCommand::stop(unsigned long timestamp){
     if(!stepsTerminated())
         return;
     
     Serial.print("Command end in ");
-    Serial.print((micros() - this->initTime) / 1000);
+    Serial.print((timestamp - this->initTime) / 1000);
     Serial.println(" millis.");
     this->inExecution = false;
     this->initTime = -1;
@@ -68,8 +98,22 @@ void StepperCommand::stop(){
 
 void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
-    if(power == HIGH)
+    if(power == HIGH){
+        if(this->circular){
+            if(this->cicularIncrement){
+                this->halfStepInterval += this->cicularDeIncrementInterval;
+            } else {
+                this->halfStepInterval -= this->cicularDeIncrementInterval;
+            }
+            if(this->halfStepInterval <= this->circularMinHalfStepInterval){
+                this->cicularIncrement = !this->cicularIncrement;
+            } else if(this->halfStepInterval >= this->circularMaxHalfStepInterval){
+                this->cicularIncrement = !this->cicularIncrement;
+                this->direction = (this->direction + 1) % 2;
+            }
+        }
         this->stepsToExecute--;
+    }
 }
 
 bool StepperCommand::isInExecution(){
