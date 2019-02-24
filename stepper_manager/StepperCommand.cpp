@@ -33,17 +33,19 @@ bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int di
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = false;
-        this->stepsToExecute = REVOLUTION_STEPS * millimeters / MM_PER_REVOLUTION;
+        this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * millimeters;
         this->direction = dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
-        /*Serial.print("In millis="); 
+        Serial.print("Millimeters="); 
+        Serial.println(millimeters);
+        Serial.print("In millis="); 
         Serial.println(movementTimeMillis);
         Serial.print("Half speed micros="); 
         Serial.println(this->halfStepInterval);
         Serial.print("Total steps="); 
-        Serial.println(this->stepsToExecute);*/
+        Serial.println(this->stepsToExecute);
         return true;
     }
     return false;
