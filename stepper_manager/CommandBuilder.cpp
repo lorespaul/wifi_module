@@ -6,7 +6,6 @@
 //
 
 #include <limits.h>
-//#include <math.h>
 #include "CommandBuilder.h"
 
 using namespace stepper_motor;
@@ -196,14 +195,10 @@ void CommandBuilder::buildSingleCircular(StepperCommand &command, int *startPos,
         if(distance > 0){
             //(int mmFromProjection, int mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising)
             int radius = this->computeRadius();
-            command.startCircular(distance, radius, speedMillis, abs((100 * offset) / radius), dir, !((offset > 0 && clockwise && up) || 
+            command.startCircular(distance, radius, speedMillis, abs((100 * offset) / radius), dir, (offset > 0 && clockwise && up) || 
                                                                                                     (offset > 0 && !clockwise && !up) || 
                                                                                                     (offset < 0 && clockwise && !up) || 
-                                                                                                    (offset < 0 && !clockwise && up)));
-            /*command.startCircular(distance, radius, speedMillis, abs((100 * offset) / radius), dir, (offset >= 0 && clockwise && up) || 
-                                                                                                    (offset > 0 && !clockwise && !up) || 
-                                                                                                    (offset < 0 && clockwise && !up) || 
-                                                                                                    (offset <= 0 && !clockwise && up));*/
+                                                                                                    (offset < 0 && !clockwise && up));
             *startPos = endPos;
         }
     }
@@ -228,8 +223,8 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
         Serial.println("Mode G02");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos) : this->computeSpeedMillisCircular(STD_F_SLOW, xPos, yPos);
         if(speedMillis > -1){
-            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, true, (iOffset > 0 && jOffset <= 0) || (iOffset < 0 && jOffset < 0) || iOffset == 0, speedMillis);
-            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, true, (jOffset > 0 && iOffset <= 0) || (jOffset < 0 && iOffset < 0) || jOffset == 0, speedMillis);
+            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, true, (iOffset > 0 && jOffset <= 0) || (iOffset <= 0 && jOffset < 0), speedMillis);
+            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, true, (jOffset > 0 && iOffset <= 0) || (jOffset <= 0 && iOffset < 0), speedMillis);
         } else {
             Serial.println("Command not valid");
         }
@@ -237,8 +232,8 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
         Serial.println("Mode G03");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos) : this->computeSpeedMillisCircular(STD_F_SLOW, xPos, yPos);
         if(speedMillis > -1){
-            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, false, (iOffset > 0 && jOffset < 0) || (iOffset < 0 && jOffset <= 0) || iOffset == 0, speedMillis);
-            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, false, (jOffset > 0 && iOffset < 0) || (jOffset < 0 && iOffset <= 0) || jOffset == 0, speedMillis);
+            this->buildSingleCircular(xCommand, &xLastPos, xPos, iOffset, false, (iOffset >= 0 && jOffset < 0) || (iOffset < 0 && jOffset <= 0), speedMillis);
+            this->buildSingleCircular(yCommand, &yLastPos, yPos, jOffset, false, (jOffset >= 0 && iOffset < 0) || (jOffset < 0 && iOffset <= 0), speedMillis);
         } else {
             Serial.println("Command not valid");
         }
@@ -267,5 +262,7 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
     //G03 X0 Y0 I-60 J0
     //G02 X60 Y-60 I60 J0
     //G02 X0 Y0 I-60 J0
+
+    //G02 X60 Y-60 I60 J0
     Serial.println("----");
 }

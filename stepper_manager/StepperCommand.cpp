@@ -55,7 +55,7 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = true;
-        this->stepsToExecute = REVOLUTION_STEPS * mmFromProjection / MM_PER_REVOLUTION;
+        this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * mmFromProjection;
         this->direction = initialDir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
@@ -64,7 +64,7 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
         this->circularMaxHalfStepInterval = (linearHalfStepInterval * 2) - CIRCULAR_EXTREME_RANGE;
         this->halfStepInterval = ((this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / 100.00 * startSpeedPercentual) + this->circularMinHalfStepInterval;
         this->cicularIncrement = initialIncrising;
-        this->cicularDeIncrementInterval = (this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / (REVOLUTION_STEPS * mmRadius / MM_PER_REVOLUTION);
+        this->cicularDeIncrementInterval = (this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / (REVOLUTION_STEPS / MM_PER_REVOLUTION * mmRadius);
         Serial.print("Total steps="); 
         Serial.println(this->stepsToExecute);
         Serial.print("In millis="); 
@@ -102,10 +102,11 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
     if(power == HIGH){
         if(this->circular){
+            // la veloctà è inversamente proporzionale alla grandezza dell'intervallo
             if(this->cicularIncrement){
-                this->halfStepInterval += this->cicularDeIncrementInterval;
-            } else {
                 this->halfStepInterval -= this->cicularDeIncrementInterval;
+            } else {
+                this->halfStepInterval += this->cicularDeIncrementInterval;
             }
             if(this->halfStepInterval <= this->circularMinHalfStepInterval){
                 this->cicularIncrement = !this->cicularIncrement;
