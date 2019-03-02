@@ -231,7 +231,7 @@ void CommandBuilder::buildSingleCircular(StepperCommand &command, int *startPos,
     }
 }
 
-void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
+int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
     this->prepareContext(stringCommand);
     int speedMillis = 0;
     if(this->gModeEq(G00)){
@@ -303,4 +303,5 @@ void CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Stepp
     //G02 X120 Y0 I0 J60
     //G02 X60 Y60 I0 J60
     Serial.println("----");
+    return speedMillis;
 }

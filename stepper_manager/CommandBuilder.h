@@ -68,7 +68,7 @@ namespace stepper_motor {
         public:
             CommandBuilder();
             ~CommandBuilder();
-            void build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
+            int build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
         
     };
     
