@@ -43,7 +43,7 @@ namespace stepper_motor {
 
         private:
             char gMode[G_MODE_CHARS];
-            unsigned int fMode;
+            float fMode;
             int xLastPos;
             int yLastPos;
             int zLastPos;
@@ -59,9 +59,9 @@ namespace stepper_motor {
             int computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
             void buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis);
 
-            int computeStartEndPosDistanceCircularProjection(int startPos, int endPos, int offset, bool clockwise, bool up);
-            int computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos);
-            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int offset, bool clockwise, bool up, int speedMillis);
+            int computeStartEndPosDistanceCircularProjection(int startPos, int endPos, int offset, bool clockwise, bool startUp, bool endUp);
+            int computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos, bool clockwise, bool yStartUp, bool yEndUp);
+            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int offset, bool clockwise, bool startUp, bool endUp, int speedMillis);
 
             double computeRadius();
             

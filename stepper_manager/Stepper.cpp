@@ -50,13 +50,8 @@ void Stepper::makeStepAsync(StepperCommand &command){
 }
 
 void Stepper::invertRotation(){
-    if(this->direction == LOW){
-        this->direction = HIGH;
-        digitalWrite(this->directionPin, HIGH);
-    } else if(this->direction == HIGH){
-        this->direction = LOW;
-        digitalWrite(this->directionPin, LOW);
-    }
+    this->direction = (this->direction + 1) % 2;
+    digitalWrite(this->directionPin, this->direction);
 }
 
 

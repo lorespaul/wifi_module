@@ -12,7 +12,7 @@
 #define MM_PER_REVOLUTION 8.00
 
 #define MILLIS_TO_MICROS_MID_MULTIPLIER 500
-#define CIRCULAR_EXTREME_RANGE 300
+#define CIRCULAR_EXTREME_RANGE 350
 
 namespace stepper_motor {
     
@@ -26,7 +26,7 @@ namespace stepper_motor {
             unsigned long initTime;
             unsigned long lastStepTime;
             double halfStepInterval;
-            int circularMaxHalfStepInterval;
+            double circularMaxHalfStepInterval;
             int circularMinHalfStepInterval;
             bool cicularIncrement;
             double cicularDeIncrementInterval;

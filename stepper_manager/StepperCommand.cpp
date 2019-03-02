@@ -38,14 +38,14 @@ bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int di
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
-        Serial.print("Millimeters="); 
+        /*Serial.print("Millimeters="); 
         Serial.println(millimeters);
         Serial.print("In millis="); 
         Serial.println(movementTimeMillis);
         Serial.print("Half speed micros="); 
         Serial.println(this->halfStepInterval);
         Serial.print("Total steps="); 
-        Serial.println(this->stepsToExecute);
+        Serial.println(this->stepsToExecute);*/
         return true;
     }
     return false;
@@ -65,7 +65,7 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
         this->halfStepInterval = ((this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / 100.00 * startSpeedPercentual) + this->circularMinHalfStepInterval;
         this->cicularIncrement = initialIncrising;
         this->cicularDeIncrementInterval = (this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / (REVOLUTION_STEPS / MM_PER_REVOLUTION * mmRadius);
-        Serial.print("Total steps="); 
+        /*Serial.print("Total steps="); 
         Serial.println(this->stepsToExecute);
         Serial.print("In millis="); 
         Serial.println(movementTimeMillis);
@@ -73,13 +73,17 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
         Serial.println(this->cicularIncrement);
         Serial.print("Half speed micros="); 
         Serial.println(this->halfStepInterval);
+        Serial.print("Max half speed micros="); 
+        Serial.println(this->circularMaxHalfStepInterval);
+        Serial.print("Min half speed micros="); 
+        Serial.println(this->circularMinHalfStepInterval);
         Serial.print("Linear half speed micros="); 
         Serial.println(linearHalfStepInterval);
         Serial.print("Start perc="); 
         Serial.println(startSpeedPercentual);
         Serial.print("Incr interval="); 
         Serial.println(this->cicularDeIncrementInterval);
-        Serial.println("+++++++++++");
+        Serial.println("+++++++++++");*/
         return true;
     }
     return false;
@@ -102,7 +106,7 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
     if(power == HIGH){
         if(this->circular){
-            // la veloctà è inversamente proporzionale alla grandezza dell'intervallo
+            // la velocità è inversamente proporzionale alla grandezza dell'intervallo
             if(this->cicularIncrement){
                 this->halfStepInterval -= this->cicularDeIncrementInterval;
             } else {
@@ -110,9 +114,13 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
             }
             if(this->halfStepInterval <= this->circularMinHalfStepInterval){
                 this->cicularIncrement = !this->cicularIncrement;
+                this->halfStepInterval = this->circularMinHalfStepInterval + this->cicularDeIncrementInterval;
             } else if(this->halfStepInterval >= this->circularMaxHalfStepInterval){
                 this->cicularIncrement = !this->cicularIncrement;
+                this->halfStepInterval = this->circularMaxHalfStepInterval - this->cicularDeIncrementInterval;
                 this->direction = (this->direction + 1) % 2;
+                Serial.print("Change step=");
+                Serial.println(this->stepsToExecute);
             }
         }
         this->stepsToExecute--;
