@@ -142,39 +142,41 @@ int CommandBuilder::computeStartEndPosDistanceCircularProjection(int startPos, i
     if(endPos == INT_MIN) return 0;
     int radius = this->computeRadius();
     int result;
-    Serial.println(startUp);
-    Serial.println(endUp);
+    //Serial.println(startPos);
+    //Serial.println(endPos);
+    //Serial.println(startUp);
+    //Serial.println(endUp);
     if((clockwise && startUp) || (!clockwise && !startUp)){
-        if(endPos > startPos && (clockwise && startUp && endUp) || (!clockwise && !startUp && !endUp)){
-            Serial.print("A");
+        if(endPos > startPos && ((clockwise && startUp && endUp) || (!clockwise && !startUp && !endUp))){
+            //Serial.println("A");
             result = abs(endPos - startPos);
         } else {
             int mid = offset < 0 ? radius - abs(offset) : radius + abs(offset);
-            Serial.print("MidA=");
-            Serial.println(mid);
+            //Serial.print("MidA=");
+            //Serial.println(mid);
             result = mid + abs(startPos + mid - endPos);
-            Serial.println(result);
+            //Serial.println(result);
             if(startUp == endUp){
                 mid = radius - ((startPos + offset) - endPos);
-                Serial.print("Mid2A=");
-                Serial.println(mid);
+                //Serial.print("Mid2A=");
+                //Serial.println(mid);
                 result += (mid * 2);
             }
         }
     } else {
-        if(endPos < startPos && (clockwise && !startUp && !endUp) || (!clockwise && startUp && endUp)){
-            Serial.print("B");
+        if(endPos < startPos && ((clockwise && !startUp && !endUp) || (!clockwise && startUp && endUp))){
+            //Serial.println("B");
             result = abs(startPos - endPos);
         } else {
             int mid = offset < 0 ? radius + abs(offset) : radius - abs(offset);
-            Serial.print("MidB=");
-            Serial.println(mid);
+            //Serial.print("MidB=");
+            //Serial.println(mid);
             result = mid + abs(endPos - (startPos - mid));
-            Serial.println(result);
+            //Serial.println(result);
             if(startUp == endUp){
-                mid = radius - ((startPos + offset) - endPos);
-                Serial.print("Mid2B=");
-                Serial.println(mid);
+                mid = radius - abs((startPos + offset) - endPos);
+                //Serial.print("Mid2B=");
+                //Serial.println(mid);
                 result += (mid * 2);
             }
         }
@@ -206,8 +208,6 @@ int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, int xEndPos, int 
     if(xMmProjection > (radius * 2))
         arch = girth - arch;
 
-    Serial.print("Radius=");
-    Serial.println(radius);
     Serial.print("Arch=");
     Serial.println(arch);
     return 1000 * (arch / mmPerSec);
@@ -285,23 +285,9 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
     Serial.println(zLastPos);
     Serial.print("F=");
     Serial.println(fMode);
-    //G00 X10 Y13 Z7
-    //G02 X60 Y60 I60 J0
-    //G02 X120 Y0 I0 J-60
     
-    //G03 X0 Y0 I0 J-60
-
-    //G02 X120 Y0 I60 J0
-    //G02 X0 Y0 I-60 J0
-    //G03 X0 Y0 I-60 J0
-    //G02 X60 Y-60 I60 J0
-    //G02 X0 Y0 I60 J0
-
-    //G02 X0 Y0 I0 J60
-    //G03 X0 Y0 I0 J60
-
-    //G02 X120 Y0 I0 J60
-    //G02 X60 Y60 I0 J60
+    //G03 X0 Y0 I60 J0
+    
     Serial.println("----");
     return speedMillis;
 }

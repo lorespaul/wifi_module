@@ -119,8 +119,8 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
                 this->cicularIncrement = !this->cicularIncrement;
                 this->halfStepInterval = this->circularMaxHalfStepInterval - this->cicularDeIncrementInterval;
                 this->direction = (this->direction + 1) % 2;
-                Serial.print("Change step=");
-                Serial.println(this->stepsToExecute);
+                //Serial.print("Change step=");
+                //Serial.println(this->stepsToExecute);
             }
         }
         this->stepsToExecute--;
