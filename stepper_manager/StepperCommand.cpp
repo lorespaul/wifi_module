@@ -29,7 +29,7 @@ int StepperCommand::getDirection(){
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
-bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int dir){
+bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int dir){
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = false;
@@ -40,22 +40,30 @@ bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int di
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
         if(this->halfStepInterval < MIN_INTERVAL){
             forceStop();
-            Serial.println("Speed not supported");
+            Serial.println("Speed not supported.");
+            return false;
+        } 
+        if(this->stepsToExecute == 0){
+            forceStop();
+            Serial.println("No steps to do.");
+            return false;
         }
-        /*Serial.print("Millimeters="); 
+        /*Serial.println("||||||||||||");
+        Serial.print("Millimeters="); 
         Serial.println(millimeters);
         Serial.print("In millis="); 
         Serial.println(movementTimeMillis);
         Serial.print("Half speed micros="); 
         Serial.println(this->halfStepInterval);
         Serial.print("Total steps="); 
-        Serial.println(this->stepsToExecute);*/
+        Serial.println(this->stepsToExecute);
+        Serial.println("+++++++++++");*/
         return true;
     }
     return false;
 }
 
-bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising){
+bool StepperCommand::startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising){
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = true;
@@ -73,7 +81,8 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
         this->halfStepInterval = ((this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / 100.00 * startSpeedPercentual) + this->circularMinHalfStepInterval;
         this->cicularIncrement = initialIncrising;
         this->cicularDeIncrementInterval = (this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / (REVOLUTION_STEPS / MM_PER_REVOLUTION * mmRadius);
-        /*Serial.print("Total steps="); 
+        /*Serial.println("||||||||||||");
+        Serial.print("Total steps="); 
         Serial.println(this->stepsToExecute);
         Serial.print("In millis="); 
         Serial.println(movementTimeMillis);

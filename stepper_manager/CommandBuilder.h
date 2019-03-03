@@ -14,6 +14,7 @@
 #define SPACE " "
 
 #define G 'G'    // imposta tipo comando
+#define M 'M'    // imposta tipo comando
 #define F 'F'    // imposta velocità (mm/sec)
 #define X 'X'    // coordinata asse x
 #define Y 'Y'    // coordinata asse y
@@ -21,14 +22,16 @@
 #define I 'I'    // cerchio -> offset dal centro rispetto al punto di partenza su asse x
 #define J 'J'    // cerchio -> offset dal centro rispetto al punto di partenza su asse y
 
-#define G00 "00" // movimento veloce
-#define G01 "01" // movimento lento o a velocità prestabilita (vedi fMode 'F')
-#define G02 "02" // movimento insenso orario
-#define G03 "03" // movimento insenso antiorario
-#define G28 "28" // vai alla posizione home
+#define G00 "G00" // movimento veloce
+#define G01 "G01" // movimento lento o a velocità prestabilita (vedi fMode 'F')
+#define G02 "G02" // movimento insenso orario
+#define G03 "G03" // movimento insenso antiorario
+#define G28 "G28" // vai alla posizione home
+#define M09 "M09" // vai alla posizione home
+#define M10 "M10" // vai alla posizione home
 
 #define F_DEFAULT 20
-#define G_MODE_CHARS 2
+#define MODE_CHARS 3
 
 #define GO_AHEAD LOW
 #define GO_BACK HIGH
@@ -42,26 +45,29 @@ namespace stepper_motor {
     class CommandBuilder {
 
         private:
-            char gMode[G_MODE_CHARS];
+            char gMode[MODE_CHARS];
+            char mMode[MODE_CHARS];
             float fMode;
-            int xLastPos;
-            int yLastPos;
-            int zLastPos;
-            int xPos;
-            int yPos;
-            int zPos;
-            int iOffset;
-            int jOffset;
+            double xLastPos;
+            double yLastPos;
+            double zLastPos;
+            double xPos;
+            double yPos;
+            double zPos;
+            double iOffset;
+            double jOffset;
             void prepareContext(char stringCommand[]);
-            bool gModeEq(char comparison[]);
-            
-            int computeStartEndPosDistanceLinear(int startPos, int endPos);
-            int computeSpeedMillisLinear(float mmPerSec, int xEndPos, int yEndPos, int zEndPos);
-            void buildSingleLinear(StepperCommand &command, int *startPos, int endPos, int speedMillis);
+            bool modeEq(const char mode[], const char comparison[]);
 
-            int computeStartEndPosDistanceCircularProjection(int startPos, int endPos, int offset, bool clockwise, bool startUp, bool endUp);
-            int computeSpeedMillisCircular(float mmPerSec, int xEndPos, int yEndPos, bool clockwise, bool yStartUp, bool yEndUp);
-            void buildSingleCircular(StepperCommand &command, int *startPos, int endPos, int offset, bool clockwise, bool startUp, bool endUp, int speedMillis);
+            int computeSpeedMillis(float mmPerSec, double millimeters);
+            
+            double computeStartEndPosDistanceLinear(double startPos, double endPos);
+            int computeSpeedMillisLinear(float mmPerSec, double xEndPos, double yEndPos, double zEndPos);
+            void buildSingleLinear(StepperCommand &command, double *startPos, double endPos, int speedMillis);
+
+            double computeStartEndPosDistanceCircularProjection(double startPos, double endPos, double offset, bool clockwise, bool startUp, bool endUp);
+            int computeSpeedMillisCircular(float mmPerSec, double xEndPos, double yEndPos, bool clockwise, bool yStartUp, bool yEndUp);
+            void buildSingleCircular(StepperCommand &command, double *startPos, double endPos, double offset, bool clockwise, bool startUp, bool endUp, int speedMillis);
 
             double computeRadius();
             

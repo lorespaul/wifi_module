@@ -31,10 +31,10 @@ void setup() {
 void loop() {
     if(allMotorFinishACommand()){
         if(readCommandFromSerial() > 0){
-          int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
-          Serial.print("CommandTime=");
-          Serial.println(commandTime);
-          Serial.println("------------");
+            int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+            Serial.print("CommandTime=");
+            Serial.println(commandTime);
+            Serial.println("------------");
         }
     }
 

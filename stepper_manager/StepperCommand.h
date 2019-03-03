@@ -40,8 +40,8 @@ namespace stepper_motor {
             StepperCommand();
             ~StepperCommand();
             int getDirection();
-            bool startLinear(int millimeters, int movementTimeMillis, int dir);
-            bool startCircular(int mmFromProjection, int mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
+            bool startLinear(double millimeters, int movementTimeMillis, int dir);
+            bool startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
             void stop(unsigned long timestamp);
             void halfStepDone(unsigned long timestamp, int power);
             bool isInExecution();
