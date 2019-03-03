@@ -34,6 +34,7 @@ void loop() {
           int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
           Serial.print("CommandTime=");
           Serial.println(commandTime);
+          Serial.println("------------");
         }
     }
 

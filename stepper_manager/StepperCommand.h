@@ -8,11 +8,13 @@
 #ifndef StepperCommand_h
 #define StepperCommand_h
 
+#define MIN_INTERVAL 310
+
 #define REVOLUTION_STEPS 200
 #define MM_PER_REVOLUTION 8.00
 
 #define MILLIS_TO_MICROS_MID_MULTIPLIER 500
-#define CIRCULAR_EXTREME_RANGE 350
+#define CIRCULAR_EXTREME_RANGE MIN_INTERVAL
 
 namespace stepper_motor {
     
@@ -30,6 +32,8 @@ namespace stepper_motor {
             int circularMinHalfStepInterval;
             bool cicularIncrement;
             double cicularDeIncrementInterval;
+            
+            void forceStop();
         
         
         public:

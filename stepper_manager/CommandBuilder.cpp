@@ -285,9 +285,5 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
     Serial.println(zLastPos);
     Serial.print("F=");
     Serial.println(fMode);
-    
-    //G03 X0 Y0 I60 J0
-    
-    Serial.println("----");
     return speedMillis;
 }

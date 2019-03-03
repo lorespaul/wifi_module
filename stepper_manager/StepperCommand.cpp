@@ -38,6 +38,10 @@ bool StepperCommand::startLinear(int millimeters, int movementTimeMillis, int di
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        if(this->halfStepInterval < MIN_INTERVAL){
+            forceStop();
+            Serial.println("Speed not supported");
+        }
         /*Serial.print("Millimeters="); 
         Serial.println(millimeters);
         Serial.print("In millis="); 
@@ -60,6 +64,10 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         int linearHalfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        if(linearHalfStepInterval < MIN_INTERVAL){
+            forceStop();
+            Serial.println("Speed not supported");
+        }
         this->circularMinHalfStepInterval = CIRCULAR_EXTREME_RANGE;
         this->circularMaxHalfStepInterval = (linearHalfStepInterval * 2) - CIRCULAR_EXTREME_RANGE;
         this->halfStepInterval = ((this->circularMaxHalfStepInterval - this->circularMinHalfStepInterval) / 100.00 * startSpeedPercentual) + this->circularMinHalfStepInterval;
@@ -89,6 +97,13 @@ bool StepperCommand::startCircular(int mmFromProjection, int mmRadius, int movem
     return false;
 }
 
+void StepperCommand::forceStop(){
+    this->inExecution = false;
+    this->initTime = -1;
+    this->lastStepTime = -1;
+    this->halfStepInterval = -1;
+}
+
 void StepperCommand::stop(unsigned long timestamp){
     if(!stepsTerminated())
         return;
@@ -96,10 +111,7 @@ void StepperCommand::stop(unsigned long timestamp){
     Serial.print("Command end in ");
     Serial.print((timestamp - this->initTime) / 1000);
     Serial.println(" millis.");
-    this->inExecution = false;
-    this->initTime = -1;
-    this->lastStepTime = -1;
-    this->halfStepInterval = -1;
+    forceStop();
 }
 
 void StepperCommand::halfStepDone(unsigned long timestamp, int power){
