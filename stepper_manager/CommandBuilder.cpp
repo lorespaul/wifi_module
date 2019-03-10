@@ -201,12 +201,12 @@ int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, double xEndPos, d
     double mmY = this->computeStartEndPosDistanceLinear(yLastPos, yEndPos);
     
     double radius = this->computeRadius();
-    double xCenterPos = xLastPos + iOffset;
+    /*double xCenterPos = xLastPos + iOffset;
     double yCenterPos = yLastPos + jOffset;
     double mmEndX = this->computeStartEndPosDistanceLinear(xCenterPos, xEndPos);
     double mmEndY = this->computeStartEndPosDistanceLinear(yCenterPos, yEndPos);
     if(sqrt(pow(mmEndX, 2) + pow(mmEndY, 2)) != radius)
-        return -1;
+        return -1;*/
     
     double rope = sqrt(pow(mmX, 2) + pow(mmY, 2));
     double angle = (asin(rope / (double)(2 * radius)) * 180 / PI) * 2;
@@ -249,9 +249,7 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
         this->buildSingleLinear(zCommand, &zLastPos, 0, this->computeSpeedMillis(STD_F_FAST, 10));
     } else if(this->modeEq(this->mMode, M10)){
         this->buildSingleLinear(zCommand, &zLastPos, 10, this->computeSpeedMillis(STD_F_FAST, 10));
-    }
-    
-    if(this->modeEq(this->gMode, G00)){
+    } else if(this->modeEq(this->gMode, G00)){
         Serial.println("Mode G00");
         speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, xPos, yPos, zPos);
         this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);

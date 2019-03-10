@@ -32,8 +32,6 @@ namespace stepper_motor {
             int circularMinHalfStepInterval;
             bool cicularIncrement;
             double cicularDeIncrementInterval;
-            
-            void forceStop();
         
         
         public:
@@ -42,6 +40,7 @@ namespace stepper_motor {
             int getDirection();
             bool startLinear(double millimeters, int movementTimeMillis, int dir);
             bool startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
+            void forceStop();
             void stop(unsigned long timestamp);
             void halfStepDone(unsigned long timestamp, int power);
             bool isInExecution();

@@ -10,9 +10,10 @@
 
 using namespace stepper_motor;
 
-Stepper::Stepper(int directionPin, int stepPin){
+Stepper::Stepper(int directionPin, int stepPin, int homePin){
     this->directionPin = directionPin;
     this->stepPin = stepPin;
+    this->homePin = homePin;
     this->direction = LOW;
     this->step = LOW;
     //Serial.println("New Stepper");
@@ -25,12 +26,23 @@ Stepper::~Stepper(){
 void Stepper::begin(){
     pinMode(this->directionPin, OUTPUT); 
     pinMode(this->stepPin, OUTPUT);
+    pinMode(this->homePin, INPUT);
     digitalWrite(this->directionPin, this->direction);
     digitalWrite(this->stepPin, this->step);
 }
 
 
 void Stepper::makeStepAsync(StepperCommand &command){
+
+    if(digitalRead(this->homePin) == HIGH){
+        command.forceStop();
+        this->direction = LOW;
+        this->step = LOW;
+        digitalWrite(this->directionPin, this->direction);
+        digitalWrite(this->stepPin, this->step);
+        while(digitalRead(this->homePin) == HIGH);
+        return;
+    }
     
     unsigned long timestamp = micros();
     if(command.isInExecution() && command.canDoHalfStep(timestamp)){

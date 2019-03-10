@@ -39,9 +39,7 @@ bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int
         this->lastStepTime = this->initTime;
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
         if(this->halfStepInterval < MIN_INTERVAL){
-            forceStop();
-            Serial.println("Speed not supported.");
-            return false;
+            this->halfStepInterval = MIN_INTERVAL;
         } 
         if(this->stepsToExecute == 0){
             forceStop();
@@ -68,13 +66,17 @@ bool StepperCommand::startCircular(double mmFromProjection, double mmRadius, int
         this->inExecution = true;
         this->circular = true;
         this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * mmFromProjection;
+        if(this->stepsToExecute == 0){
+            forceStop();
+            Serial.println("No steps to do.");
+            return false;
+        }
         this->direction = initialDir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
-        int linearHalfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        double linearHalfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
         if(linearHalfStepInterval < MIN_INTERVAL){
-            forceStop();
-            Serial.println("Speed not supported");
+            linearHalfStepInterval = MIN_INTERVAL * 2;
         }
         this->circularMinHalfStepInterval = CIRCULAR_EXTREME_RANGE;
         this->circularMaxHalfStepInterval = (linearHalfStepInterval * 2) - CIRCULAR_EXTREME_RANGE;

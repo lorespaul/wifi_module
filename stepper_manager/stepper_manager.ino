@@ -6,13 +6,17 @@
 #define CR '\r'
 #define BUFFER_LENGTH 100
 
+#define SAFE_PIN 11
+
+#define SERIAL_BAUD 230400
+
 char readBuffer[BUFFER_LENGTH];
 
 using namespace stepper_motor;
 
-Stepper x(6, 7);
-Stepper y(4, 5);
-Stepper z(2, 3);
+Stepper x(6, 7, 8);
+Stepper y(4, 5, 9);
+Stepper z(2, 3, 10);
 
 StepperCommand xCommand;
 StepperCommand yCommand;
@@ -21,7 +25,9 @@ StepperCommand zCommand;
 CommandBuilder commandBuilder;
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(SERIAL_BAUD);
+
+    pinMode(SAFE_PIN, INPUT);
     
     x.begin();
     y.begin();
@@ -29,6 +35,15 @@ void setup() {
 }
 
 void loop() {
+
+    if(digitalRead(SAFE_PIN) == HIGH){
+        Serial.end();
+        xCommand.forceStop();
+        yCommand.forceStop();
+        zCommand.forceStop();
+        Serial.begin(SERIAL_BAUD);
+    }
+    
     if(allMotorFinishACommand()){
         if(readCommandFromSerial() > 0){
             int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);

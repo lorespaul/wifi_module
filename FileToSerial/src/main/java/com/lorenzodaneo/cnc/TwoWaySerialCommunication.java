@@ -5,6 +5,7 @@ import gnu.io.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * @author Lorenzo Daneo (mail to lorenzo.daneo@coolshop.it)
@@ -12,10 +13,10 @@ import java.io.OutputStream;
  */
 public class TwoWaySerialCommunication {
 
-    SerialPort serialPort;
+    private SerialPort serialPort;
 
-    InputStream in;
-    OutputStream out;
+    private InputStream in;
+    private OutputStream out;
 
     boolean connect(String portName) throws Exception {
         CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
@@ -30,7 +31,7 @@ public class TwoWaySerialCommunication {
             if (commPort instanceof SerialPort) {
                 serialPort = (SerialPort) commPort;
                 serialPort.setSerialPortParams(
-                        115200,
+                        230400,
                         SerialPort.DATABITS_8,
                         SerialPort.STOPBITS_1,
                         SerialPort.PARITY_NONE
@@ -68,13 +69,12 @@ public class TwoWaySerialCommunication {
 
     public void writeLine(String line){
         try {
+            line = line + "\r\n";
             this.out.write(line.getBytes());
-            this.out.flush();
-        } catch( IOException e ) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
 
     public void close(){
@@ -83,6 +83,7 @@ public class TwoWaySerialCommunication {
             out.close();
             serialPort.removeEventListener();
             serialPort.close();
+            System.out.println("Serial communication closed.");
         } catch (Exception e) {
             e.printStackTrace();
         }
