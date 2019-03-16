@@ -285,10 +285,10 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
         }
     } else if(this->modeEq(this->gMode, G28)){
         Serial.println("Mode G28");
-        speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, 0, 0, 0);
-        this->buildSingleLinear(xCommand, &xLastPos, 0, speedMillis);
-        this->buildSingleLinear(yCommand, &yLastPos, 0, speedMillis);
-        this->buildSingleLinear(zCommand, &zLastPos, 0, speedMillis);
+        xCommand.startInfiniteLinear(STD_F_HOME, GO_BACK);
+        yCommand.startInfiniteLinear(STD_F_HOME, GO_BACK);
+        zCommand.startInfiniteLinear(STD_F_HOME, GO_BACK);
+        xLastPos = yLastPos = zLastPos = 0;
     }
     Serial.print("Speed=");
     Serial.println(speedMillis);

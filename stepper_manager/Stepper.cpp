@@ -35,12 +35,13 @@ void Stepper::begin(){
 void Stepper::makeStepAsync(StepperCommand &command){
 
     if(digitalRead(this->homePin) == HIGH){
-        command.forceStop();
+        Serial.println("HOME!");
         this->direction = LOW;
         this->step = LOW;
         digitalWrite(this->directionPin, this->direction);
         digitalWrite(this->stepPin, this->step);
-        while(digitalRead(this->homePin) == HIGH);
+        delay(2);
+        command.forceStop();
         return;
     }
     
@@ -48,7 +49,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
     if(command.isInExecution() && command.canDoHalfStep(timestamp)){
         this->manageDirection(command.getDirection());
         
-        this->step = (this->step + 1) % 2;
+        this->step = !this->step;
         digitalWrite(this->stepPin, this->step);
         
         command.halfStepDone(timestamp, this->step);
@@ -62,7 +63,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
 }
 
 void Stepper::invertRotation(){
-    this->direction = (this->direction + 1) % 2;
+    this->direction = !this->direction;
     digitalWrite(this->directionPin, this->direction);
 }
 

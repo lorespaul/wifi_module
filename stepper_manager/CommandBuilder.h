@@ -38,6 +38,7 @@
 
 #define STD_F_FAST 60.00  // mm/sec
 #define STD_F_SLOW 30.00  // mm/sec
+#define STD_F_HOME 40.00  // mm/sec
 
 
 namespace stepper_motor {

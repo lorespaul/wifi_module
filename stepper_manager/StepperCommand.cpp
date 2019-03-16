@@ -6,6 +6,7 @@
 //
 
 #include <Arduino.h>
+#include <limits.h>
 #include "StepperCommand.h"
 
 using namespace stepper_motor;
@@ -26,6 +27,23 @@ int StepperCommand::getDirection(){
     return this->direction;
 }
 
+
+bool StepperCommand::startInfiniteLinear(int speedMmSec, int dir){
+    if(!isInExecution()){
+        this->inExecution = true;
+        this->circular = false;
+        this->infinite = true;
+        this->stepsToExecute = INT_MAX;
+        this->direction = !dir;
+        this->initTime = micros();
+        this->lastStepTime = this->initTime;
+        this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (1 / (double)((REVOLUTION_STEPS / MM_PER_REVOLUTION * speedMmSec)) * 1000);
+        return true;
+    }
+    return false;
+}
+
+
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
@@ -33,6 +51,7 @@ bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = false;
+        this->infinite = false;
         this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * millimeters;
         this->direction = dir;
         this->initTime = micros();
@@ -65,6 +84,7 @@ bool StepperCommand::startCircular(double mmFromProjection, double mmRadius, int
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = true;
+        this->infinite = false;
         this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * mmFromProjection;
         if(this->stepsToExecute == 0){
             forceStop();
@@ -142,9 +162,10 @@ void StepperCommand::halfStepDone(unsigned long timestamp, int power){
                 this->cicularIncrement = !this->cicularIncrement;
                 this->halfStepInterval = this->circularMaxHalfStepInterval - this->cicularDeIncrementInterval;
                 this->direction = (this->direction + 1) % 2;
-                //Serial.print("Change step=");
-                //Serial.println(this->stepsToExecute);
             }
+        }
+        if(this->infinite && this->stepsToExecute == INT_MAX - REVOLUTION_STEPS){
+            this->direction = !this->direction;
         }
         this->stepsToExecute--;
     }
@@ -159,5 +180,8 @@ bool StepperCommand::canDoHalfStep(unsigned long timestamp){
 }
 
 bool StepperCommand::stepsTerminated(){
+    if(this->infinite && this->stepsToExecute == 0){
+        this->stepsToExecute = INT_MAX - REVOLUTION_STEPS - 1;
+    }
     return this->stepsToExecute == 0;
 }

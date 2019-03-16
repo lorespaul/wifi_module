@@ -25,6 +25,7 @@ namespace stepper_motor {
             int stepsToExecute;
             int direction;
             bool circular;
+            bool infinite;
             unsigned long initTime;
             unsigned long lastStepTime;
             double halfStepInterval;
@@ -38,6 +39,7 @@ namespace stepper_motor {
             StepperCommand();
             ~StepperCommand();
             int getDirection();
+            bool startInfiniteLinear(int movementTimeMillis, int dir);
             bool startLinear(double millimeters, int movementTimeMillis, int dir);
             bool startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
             void forceStop();
