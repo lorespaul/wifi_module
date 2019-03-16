@@ -17,6 +17,7 @@ public class Main {
 
             GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
             String command;
+            int executed = 0;
             while ((command = gCode.getCommand()) != null){
 
                 if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
@@ -33,9 +34,12 @@ public class Main {
                         int wait = Integer.valueOf(line);
                         Thread.sleep(wait);
                     }
+                    executed++;
                 }
 
             }
+
+            System.out.println("Executed " + executed + " commands!");
 
             gCode.close();
             serial.close();
