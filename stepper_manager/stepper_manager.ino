@@ -1,5 +1,5 @@
 #include "Stepper.h"
-#include "CommandBuilder.h";
+#include "CommandBuilder.h"
 
 #define ZC '\0'
 #define NL '\n'
@@ -44,7 +44,7 @@ void loop() {
         Serial.begin(SERIAL_BAUD);
     }
     
-    if(allMotorFinishACommand()){
+    if(allMotorsFinishACommand()){
         if(readCommandFromSerial() > 0){
             int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
             Serial.print("CommandTime=");
@@ -60,7 +60,7 @@ void loop() {
 }
 
 
-bool allMotorFinishACommand(){
+bool allMotorsFinishACommand(){
     return !xCommand.isInExecution() && !yCommand.isInExecution() && !zCommand.isInExecution();
 }
 

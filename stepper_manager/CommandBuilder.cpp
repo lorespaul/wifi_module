@@ -32,39 +32,39 @@ void CommandBuilder::prepareContext(char stringCommand[]){
         //Serial.print(token[0]);
         //Serial.print(" -> ");
         switch(token[0]){
-            case G:
+            case GG:
                 strcpy(gMode, &token[0]);
                 //Serial.println(gMode);
                 break;
-            case M:
+            case MM:
                 strcpy(mMode, &token[0]);
                 //Serial.println(mMode);
                 break;
-            case F:
+            case FF:
                 fMode = atoi(&token[1]);
                 //Serial.println(fMode);
                 break;
-            case X:
+            case XX:
                 xPos = atof(&token[1]);
                 coordinatesClean[0] = true;
                 //Serial.println(xPos);
                 break;
-            case Y:
+            case YY:
                 yPos = atof(&token[1]);
                 coordinatesClean[1] = true;
                 //Serial.println(yPos);
                 break;
-            case Z:
+            case ZZ:
                 zPos = atof(&token[1]);
                 coordinatesClean[2] = true;
                 //Serial.println(zPos);
                 break;
-            case I:
+            case II:
                 iOffset = atof(&token[1]);
                 coordinatesClean[3] = true;
                 //Serial.println(iOffset);
                 break;
-            case J:
+            case JJ:
                 jOffset = atof(&token[1]);
                 coordinatesClean[4] = true;
                 //Serial.println(jOffset);

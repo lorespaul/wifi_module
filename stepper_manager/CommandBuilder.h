@@ -13,14 +13,14 @@
 
 #define SPACE " "
 
-#define G 'G'    // imposta tipo comando
-#define M 'M'    // imposta tipo comando
-#define F 'F'    // imposta velocità (mm/sec)
-#define X 'X'    // coordinata asse x
-#define Y 'Y'    // coordinata asse y
-#define Z 'Z'    // coordinata asse z
-#define I 'I'    // cerchio -> offset dal centro rispetto al punto di partenza su asse x
-#define J 'J'    // cerchio -> offset dal centro rispetto al punto di partenza su asse y
+#define GG 'G'    // imposta tipo comando
+#define MM 'M'    // imposta tipo comando
+#define FF 'F'    // imposta velocità (mm/sec)
+#define XX 'X'    // coordinata asse x
+#define YY 'Y'    // coordinata asse y
+#define ZZ 'Z'    // coordinata asse z
+#define II 'I'    // cerchio -> offset dal centro rispetto al punto di partenza su asse x
+#define JJ 'J'    // cerchio -> offset dal centro rispetto al punto di partenza su asse y
 
 #define G00 "G00" // movimento veloce
 #define G01 "G01" // movimento lento o a velocità prestabilita (vedi fMode 'F')
