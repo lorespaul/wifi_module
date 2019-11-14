@@ -38,10 +38,18 @@ public class Main {
         GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
         String command;
         int executed = 0;
+
+        while ((command = gCode.getCommand()) != null) {
+
+            if (command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
+                serial.writeLine(command);
+                break;
+            }
+        }
+
         while ((command = gCode.getCommand()) != null){
 
             if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
-                serial.writeLine(command);
 
                 String line;
                 int breaker = 0;
@@ -54,6 +62,8 @@ public class Main {
                     }
                     breaker++;
                 } while (!line.startsWith("CommandTime="));
+
+                serial.writeLine(command);
 
                 line = line.replace("CommandTime=", "");
                 if(StringUtils.isNumeric(line)){

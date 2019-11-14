@@ -11,6 +11,10 @@
 #define SERIAL_BAUD 230400
 
 char readBuffer[BUFFER_LENGTH];
+char nextCommand[BUFFER_LENGTH];
+int readFromNextCommand = 0;
+
+int commandTime;
 
 using namespace stepper_motor;
 
@@ -45,11 +49,26 @@ void loop() {
     }
     
     if(allMotorsFinishACommand()){
-        if(readCommandFromSerial() > 0){
-            int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+        
+        if(readFromNextCommand){
+            commandTime = commandBuilder.build(nextCommand, xCommand, yCommand, zCommand);
+            readFromNextCommand = 0;
             Serial.print("CommandTime=");
             Serial.println(commandTime);
             Serial.println("------------");
+        } 
+        
+        /*else if(readCommandFromSerial() > 0){
+            commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+            Serial.print("CommandTime=");
+            Serial.println(commandTime);
+            Serial.println("------------");
+        }*/
+        
+        if(readCommandFromSerial() > 0){
+            memset(nextCommand, ZC, BUFFER_LENGTH);
+            strcpy(nextCommand, readBuffer);
+            readFromNextCommand = 1;
         }
     }
 
