@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Enumeration;
 
 /**
  * @author Lorenzo Daneo (mail to lorenzo.daneo@coolshop.it)
@@ -19,6 +20,7 @@ public class TwoWaySerialCommunication {
     private OutputStream out;
 
     boolean connect(String portName) throws Exception {
+        Enumeration enumeration = CommPortIdentifier.getPortIdentifiers();
         CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
 
         int timeout = 2000;
