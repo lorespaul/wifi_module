@@ -53,6 +53,11 @@ bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int
         this->circular = false;
         this->infinite = false;
         this->stepsToExecute = REVOLUTION_STEPS / MM_PER_REVOLUTION * millimeters;
+        
+        //if(this->stepsToExecute < 0.04 && this->stepsToExecute > 0){ // TODO: works for minimum distance of motor?
+        //    this->stepsToExecute = 0.04;
+        //}
+        
         this->direction = dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
@@ -62,7 +67,7 @@ bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int
         } 
         if(this->stepsToExecute == 0){
             forceStop();
-            Serial.println("No steps to do.");
+            //Serial.println("No steps to do.");
             return false;
         }
         /*Serial.println("||||||||||||");
@@ -139,9 +144,9 @@ void StepperCommand::stop(unsigned long timestamp){
     if(!stepsTerminated())
         return;
     
-    Serial.print("Command end in ");
-    Serial.print((timestamp - this->initTime) / 1000);
-    Serial.println(" millis.");
+    //Serial.print("Command end in ");
+    //Serial.print((timestamp - this->initTime) / 1000);
+    //Serial.println(" millis.");
     forceStop();
 }
 

@@ -4,13 +4,20 @@
 #define ZC '\0'
 #define NL '\n'
 #define CR '\r'
-#define BUFFER_LENGTH 100
+#define BUFFER_LENGTH 20
+#define PRELOADED 50
+#define GET_NEXT "GET_NEXT"
+#define EXIT "EXIT"
 
 #define SAFE_PIN 11
 
 #define SERIAL_BAUD 230400
 
 char readBuffer[BUFFER_LENGTH];
+char preloadedCommands[PRELOADED][BUFFER_LENGTH];
+
+int commandsMissingUntilNextPreload = 0;
+int currentPreloaded = 0;
 
 using namespace stepper_motor;
 
@@ -45,11 +52,25 @@ void loop() {
     }
     
     if(allMotorsFinishACommand()){
-        if(readCommandFromSerial() > 0){
-            int commandTime = commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
-            Serial.print("CommandTime=");
-            Serial.println(commandTime);
-            Serial.println("------------");
+        if(commandsMissingUntilNextPreload == 0){
+            commandsMissingUntilNextPreload = preload();
+        }
+
+        if(commandsMissingUntilNextPreload == -1){
+            commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+            commandsMissingUntilNextPreload = 0;
+        }
+        
+        if(commandsMissingUntilNextPreload > 0){
+            
+            commandBuilder.build(preloadedCommands[currentPreloaded], xCommand, yCommand, zCommand);
+
+            if(currentPreloaded == commandsMissingUntilNextPreload){
+                commandsMissingUntilNextPreload = 0;
+                currentPreloaded = 0;
+            } else {
+                currentPreloaded++;   
+            }
         }
     }
 
@@ -64,6 +85,31 @@ bool allMotorsFinishACommand(){
     return !xCommand.isInExecution() && !yCommand.isInExecution() && !zCommand.isInExecution();
 }
 
+int preload(){
+    int counter = 0;
+    Serial.println(GET_NEXT);
+    while(counter < PRELOADED){
+        if(readCommandFromSerial() > 0){
+            
+            if(readBuffer[0] == '-'){
+                readBuffer[0] = ' ';
+                return -1;
+            } else if(strncmp(readBuffer, EXIT, 4) == 0) {
+                memset(readBuffer, ZC, BUFFER_LENGTH);
+                return counter;
+            }
+            
+            memset(preloadedCommands[counter], ZC, BUFFER_LENGTH);
+            strcpy(preloadedCommands[counter], readBuffer);
+            counter++;
+            Serial.println(GET_NEXT);
+        }
+    }
+    return counter;
+}
+
+
+
 int readCommandFromSerial(){
     if (Serial.available()){
         memset(readBuffer, ZC, BUFFER_LENGTH);
@@ -71,7 +117,7 @@ int readCommandFromSerial(){
         if(bytes == 1 && (readBuffer[0] == NL || readBuffer[0] == CR))
             return 0;
         //G01 X563 Y7 Z34 F567
-        Serial.println(readBuffer);
+        //Serial.println(readBuffer);
         return bytes;
     }
     return 0;

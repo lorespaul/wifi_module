@@ -20,7 +20,8 @@ public class Main {
 
         if(serial.connect("/dev/ttyS33")){
 
-            int executed = executeFromFile(serial);
+            int executed = executeFromFileWithPreLoading(serial);
+//            int executed = executeFromFile(serial);
 //            int executed = executeTest(serial);
 
             System.out.println("Executed " + executed + " commands!");
@@ -33,11 +34,35 @@ public class Main {
     }
 
 
+    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial) throws IOException {
+        GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
+        int written = 0;
+
+        String command;
+        while ((command = gCode.getCommand()) != null){
+
+            if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.equals("EXIT")){
+                String line;
+                do {
+                    line = serial.readLine();
+                    System.out.println(line);
+                } while (!line.startsWith("GET_NEXT"));
+
+                serial.writeLine(command);
+                written++;
+            }
+
+        }
+        gCode.close();
+
+        return written;
+    }
+
     private static int executeFromFile(TwoWaySerialCommunication serial) throws IOException, InterruptedException {
 
         GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
         String command;
-        int executed = 0;
+        int written = 0;
         while ((command = gCode.getCommand()) != null){
 
             if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
@@ -64,13 +89,13 @@ public class Main {
                     serial.writeLine("G01 X0 Y0 Z0");
                     break;
                 }
-                executed++;
+                written++;
             }
 
         }
         gCode.close();
 
-        return executed;
+        return written;
     }
 
 

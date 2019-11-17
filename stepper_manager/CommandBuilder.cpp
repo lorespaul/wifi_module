@@ -190,8 +190,8 @@ double CommandBuilder::computeStartEndPosDistanceCircularProjection(double start
             }
         }
     }
-    Serial.print("Proj=");
-    Serial.println(result);
+    //Serial.print("Proj=");
+    //Serial.println(result);
     return result;
 }
 
@@ -217,8 +217,8 @@ int CommandBuilder::computeSpeedMillisCircular(float mmPerSec, double xEndPos, d
     if(xMmProjection > (radius * 2))
         arch = girth - arch;
 
-    Serial.print("Arch=");
-    Serial.println(arch);
+    //Serial.print("Arch=");
+    //Serial.println(arch);
     //return 1000 * (arch / mmPerSec);
     return computeSpeedMillis(mmPerSec, arch);
 }
@@ -250,19 +250,19 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
     } else if(this->modeEq(this->mMode, M10)){
         this->buildSingleLinear(zCommand, &zLastPos, 10, this->computeSpeedMillis(STD_F_FAST, 10));
     } else if(this->modeEq(this->gMode, G00)){
-        Serial.println("Mode G00");
+        //Serial.println("Mode G00");
         speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, xPos, yPos, zPos);
         this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
     } else if(this->modeEq(this->gMode, G01)){
-        Serial.println("Mode G01");
+        //Serial.println("Mode G01");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisLinear(this->fMode, xPos, yPos, zPos) : this->computeSpeedMillisLinear(STD_F_SLOW, xPos, yPos, zPos);
         this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
         this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
         this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
     } else if(this->modeEq(this->gMode, G02)){
-        Serial.println("Mode G02");
+        //Serial.println("Mode G02");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos, true, (iOffset > 0 && jOffset <= 0) || (iOffset <= 0 && jOffset < 0), yPos > (yLastPos + jOffset)) 
                                       : this->computeSpeedMillisCircular(STD_F_SLOW, xPos, yPos, true, (iOffset > 0 && jOffset <= 0) || (iOffset <= 0 && jOffset < 0), yPos > (yLastPos + jOffset));
         if(speedMillis > -1){
@@ -290,7 +290,7 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
         zCommand.startInfiniteLinear(STD_F_HOME, GO_BACK);
         xLastPos = yLastPos = zLastPos = 0;
     }
-    Serial.print("Speed=");
+    /*Serial.print("Speed=");
     Serial.println(speedMillis);
     Serial.print("X=");
     Serial.println(xLastPos);
@@ -299,6 +299,6 @@ int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, Steppe
     Serial.print("Z=");
     Serial.println(zLastPos);
     Serial.print("F=");
-    Serial.println(fMode);
+    Serial.println(fMode);*/
     return speedMillis;
 }
