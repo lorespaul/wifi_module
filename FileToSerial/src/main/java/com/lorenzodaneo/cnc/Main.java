@@ -37,12 +37,13 @@ public class Main {
 
         GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
         String command;
-        int executed = 0;
+        int written = 0;
 
         while ((command = gCode.getCommand()) != null) {
 
             if (command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
                 serial.writeLine(command);
+                written++;
                 break;
             }
         }
@@ -74,13 +75,13 @@ public class Main {
                     serial.writeLine("G01 X0 Y0 Z0");
                     break;
                 }
-                executed++;
+                written++;
             }
 
         }
         gCode.close();
 
-        return executed;
+        return written;
     }
 
 
