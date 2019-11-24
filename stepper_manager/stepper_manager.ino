@@ -95,6 +95,7 @@ bool allMotorsFinishACommand(){
 
 int preload(){
     int counter = 0;
+    memset(preloadedCommands, ZC, BUFFER_LENGTH * PRELOADED);
     while(counter < PRELOADED){
         if(readCommandFromSerial() > 0){
             Serial.println(GET_NEXT);
@@ -106,8 +107,7 @@ int preload(){
                 return counter;
             }
             
-            memset(preloadedCommands[counter], ZC, BUFFER_LENGTH);
-            strncpy(preloadedCommands[counter], readBuffer, BUFFER_LENGTH);
+            strncpy(preloadedCommands[counter], readBuffer, BUFFER_LENGTH - 1);
             counter++;
         }
     }

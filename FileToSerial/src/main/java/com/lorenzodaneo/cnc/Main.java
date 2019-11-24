@@ -20,8 +20,9 @@ public class Main {
 
         if(serial.connect("/dev/ttyS33")){
 
-            int executed = executeFromFileWithPreLoading(serial);
-//            int executed = executeFromFile(serial);
+            String gCodeFile = "cnc.ngc";
+            int executed = executeFromFileWithPreLoading(serial, gCodeFile);
+//            int executed = executeFromFile(serial, gCodeFile);
 //            int executed = executeTest(serial);
 
             System.out.println("Executed " + executed + " commands!");
@@ -34,8 +35,8 @@ public class Main {
     }
 
 
-    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial) throws IOException {
-        FileIO gCode = new FileIO("cnc.ngc");
+    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile) throws IOException {
+        FileIO gCode = new FileIO(gCodeFile);
         int written = 0;
 
         String command;
@@ -61,9 +62,9 @@ public class Main {
         return written;
     }
 
-    private static int executeFromFile(TwoWaySerialCommunication serial) throws IOException, InterruptedException {
+    private static int executeFromFile(TwoWaySerialCommunication serial, String gCodeFile) throws IOException, InterruptedException {
 
-        FileIO gCode = new FileIO("cnc.ngc");
+        FileIO gCode = new FileIO(gCodeFile);
         String command;
         int written = 0;
         while ((command = gCode.getLine()) != null){
