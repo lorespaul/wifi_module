@@ -35,17 +35,20 @@ public class Main {
 
 
     private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial) throws IOException {
-        GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
+        FileIO gCode = new FileIO("cnc.ngc");
         int written = 0;
 
         String command;
-        while ((command = gCode.getCommand()) != null){
-
+        while ((command = gCode.getLine()) != null){
+            command = command.trim();
             if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.equals("EXIT")){
                 String line;
                 do {
                     line = serial.readLine();
                     System.out.println(line);
+//                    if(!line.startsWith("GET_NEXT") && !line.isEmpty()){
+//                        gCode.writeLine(line);
+//                    }
                 } while (!line.startsWith("GET_NEXT"));
 
                 serial.writeLine(command);
@@ -60,10 +63,10 @@ public class Main {
 
     private static int executeFromFile(TwoWaySerialCommunication serial) throws IOException, InterruptedException {
 
-        GCodeFileReader gCode = new GCodeFileReader("cnc.ngc");
+        FileIO gCode = new FileIO("cnc.ngc");
         String command;
         int written = 0;
-        while ((command = gCode.getCommand()) != null){
+        while ((command = gCode.getLine()) != null){
 
             if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")) {
                 serial.writeLine(command);

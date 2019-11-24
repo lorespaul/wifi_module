@@ -8,6 +8,7 @@
 #define PRELOADED 50
 #define GET_NEXT "GET_NEXT"
 #define EXIT "EXIT"
+#define SINGLE -1
 
 #define SAFE_PIN 11
 
@@ -39,6 +40,8 @@ void setup() {
     x.begin();
     y.begin();
     z.begin();
+
+    Serial.println(GET_NEXT);
 }
 
 void loop() {
@@ -56,12 +59,17 @@ void loop() {
             commandsMissingUntilNextPreload = preload();
         }
 
-        if(commandsMissingUntilNextPreload == -1){
+        if(commandsMissingUntilNextPreload == SINGLE){
+            //Serial.print(readBuffer);
+            //Serial.println("");
             commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
             commandsMissingUntilNextPreload = 0;
         }
         
         if(commandsMissingUntilNextPreload > 0){
+
+            //Serial.print(preloadedCommands[currentPreloaded]);
+            //Serial.println("");
             
             commandBuilder.build(preloadedCommands[currentPreloaded], xCommand, yCommand, zCommand);
 
@@ -87,22 +95,20 @@ bool allMotorsFinishACommand(){
 
 int preload(){
     int counter = 0;
-    Serial.println(GET_NEXT);
     while(counter < PRELOADED){
         if(readCommandFromSerial() > 0){
-            
+            Serial.println(GET_NEXT);
             if(readBuffer[0] == '-'){
                 readBuffer[0] = ' ';
-                return -1;
+                return SINGLE;
             } else if(strncmp(readBuffer, EXIT, 4) == 0) {
                 memset(readBuffer, ZC, BUFFER_LENGTH);
                 return counter;
             }
             
             memset(preloadedCommands[counter], ZC, BUFFER_LENGTH);
-            strcpy(preloadedCommands[counter], readBuffer);
+            strncpy(preloadedCommands[counter], readBuffer, BUFFER_LENGTH);
             counter++;
-            Serial.println(GET_NEXT);
         }
     }
     return counter;
