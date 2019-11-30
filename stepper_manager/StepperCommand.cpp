@@ -47,7 +47,7 @@ bool StepperCommand::startInfiniteLinear(int speedMmSec, int dir){
 // 8mm : 360 = 0,04mm : 1.8
 // 8mm : 360 = 10mm : 450 -> 1cm
 // 8mm : 200 = millimeters : y
-bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int dir){
+bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int dir, double percentageErrorMargin, bool isExceeding){
     if(!isInExecution()){
         this->inExecution = true;
         this->circular = false;
@@ -62,6 +62,11 @@ bool StepperCommand::startLinear(double millimeters, int movementTimeMillis, int
         this->initTime = micros();
         this->lastStepTime = this->initTime;
         this->halfStepInterval = MILLIS_TO_MICROS_MID_MULTIPLIER * (movementTimeMillis / (float)this->stepsToExecute);
+        if(percentageErrorMargin > 0 && !isExceeding){
+            this->halfStepInterval = this->halfStepInterval * (1 + (percentageErrorMargin / 1000.00));
+        } else if(percentageErrorMargin > 0) {
+            this->halfStepInterval = this->halfStepInterval * (1 - (percentageErrorMargin / 1000.00));
+        }
         if(this->halfStepInterval < MIN_INTERVAL){
             this->halfStepInterval = MIN_INTERVAL;
         } 

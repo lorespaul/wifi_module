@@ -40,7 +40,7 @@ namespace stepper_motor {
             ~StepperCommand();
             int getDirection();
             bool startInfiniteLinear(int movementTimeMillis, int dir);
-            bool startLinear(double millimeters, int movementTimeMillis, int dir);
+            bool startLinear(double millimeters, int movementTimeMillis, int dir, double percentageErrorMargin, bool isExceeding);
             bool startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
             void forceStop();
             void stop(unsigned long timestamp);

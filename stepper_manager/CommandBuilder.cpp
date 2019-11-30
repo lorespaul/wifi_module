@@ -129,14 +129,14 @@ int CommandBuilder::computeSpeedMillisLinear(float mmPerSec, double xEndPos, dou
     return computeSpeedMillis(mmPerSec, result);
 }
 
-void CommandBuilder::buildSingleLinear(StepperCommand &command, double *startPos, double endPos, int speedMillis){
+void CommandBuilder::buildSingleLinear(StepperCommand &command, double *startPos, double endPos, int speedMillis, int percentageErrorMargin, bool isExceeding){
     if(endPos > -DBL_MAX){
         int dir;
         if(endPos > *startPos) dir = GO_AHEAD;
         else dir = GO_BACK;
         double distance = this->computeStartEndPosDistanceLinear(*startPos, endPos);
-        if(distance > 0){
-            command.startLinear(distance, speedMillis, dir);
+        if(distance >= MIN_DISTANCE){
+            command.startLinear(distance, speedMillis, dir, percentageErrorMargin, isExceeding);
             *startPos = endPos;
         }
     }
@@ -241,26 +241,68 @@ void CommandBuilder::buildSingleCircular(StepperCommand &command, double *startP
     }
 }
 
+
+double CommandBuilder::computeXYPercentageErrorMargin(){
+    double xDistance = this->computeStartEndPosDistanceLinear(xLastPos, xPos);
+    double yDistance = this->computeStartEndPosDistanceLinear(yLastPos, yPos);
+    /*Serial.print("xDistance: ");
+    Serial.println(xDistance);
+    Serial.print("yDistance: ");
+    Serial.println(yDistance);*/
+    double mid = fabs(xDistance - yDistance) / 2.00;
+    if(xDistance > yDistance && xDistance > MIN_DISTANCE && yDistance > MIN_DISTANCE){
+        mid += yDistance;
+        // mid : 100 = yDistance : x
+        // result = 100 - x
+        return 100.00 - (((100.00 * yDistance) / mid) * 1.55);
+    } else if(xDistance < yDistance && xDistance > MIN_DISTANCE && yDistance > MIN_DISTANCE){
+        mid += xDistance;
+        return 100.00 - (((100.00 * xDistance) / mid) * 1.55);
+    }
+    return 0;
+}
+
+bool CommandBuilder::computeIsXExceeding(){
+    double xDistance = this->computeStartEndPosDistanceLinear(xLastPos, xPos);
+    double yDistance = this->computeStartEndPosDistanceLinear(yLastPos, yPos);
+    return xDistance > yDistance;
+}
+
+
 int CommandBuilder::build(char stringCommand[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
     this->prepareContext(stringCommand);
     int speedMillis = 0;
 
     if(this->modeEq(this->mMode, M09)){
-        this->buildSingleLinear(zCommand, &zLastPos, 0, this->computeSpeedMillis(STD_F_FAST, 10));
+        
+        this->buildSingleLinear(zCommand, &zLastPos, 0, this->computeSpeedMillis(STD_F_FAST, 10), 0, false);
+    
     } else if(this->modeEq(this->mMode, M10)){
-        this->buildSingleLinear(zCommand, &zLastPos, 10, this->computeSpeedMillis(STD_F_FAST, 10));
+        
+        this->buildSingleLinear(zCommand, &zLastPos, 10, this->computeSpeedMillis(STD_F_FAST, 10), 0, false);
+    
     } else if(this->modeEq(this->gMode, G00)){
+        
         //Serial.println("Mode G00");
         speedMillis = this->computeSpeedMillisLinear(STD_F_FAST, xPos, yPos, zPos);
-        this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
-        this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
-        this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
+        double percentageMarginError = this->computeXYPercentageErrorMargin();
+        bool isXExceeding = this->computeIsXExceeding();
+        this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis, percentageMarginError, isXExceeding);
+        this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis, percentageMarginError, !isXExceeding);
+        this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis, 0, false);
+    
     } else if(this->modeEq(this->gMode, G01)){
+        
         //Serial.println("Mode G01");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisLinear(this->fMode, xPos, yPos, zPos) : this->computeSpeedMillisLinear(STD_F_SLOW, xPos, yPos, zPos);
-        this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis);
-        this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis);
-        this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis);
+        double percentageMarginError = this->computeXYPercentageErrorMargin();
+        bool isXExceeding = this->computeIsXExceeding();
+        //Serial.print("error: ");
+        //Serial.println(percentageMarginError);
+        this->buildSingleLinear(xCommand, &xLastPos, xPos, speedMillis, percentageMarginError, isXExceeding);
+        this->buildSingleLinear(yCommand, &yLastPos, yPos, speedMillis, percentageMarginError, !isXExceeding);
+        this->buildSingleLinear(zCommand, &zLastPos, zPos, speedMillis, 0, false);
+    
     } else if(this->modeEq(this->gMode, G02)){
         //Serial.println("Mode G02");
         speedMillis = this->fMode > 0 ? this->computeSpeedMillisCircular(this->fMode, xPos, yPos, true, (iOffset > 0 && jOffset <= 0) || (iOffset <= 0 && jOffset < 0), yPos > (yLastPos + jOffset)) 

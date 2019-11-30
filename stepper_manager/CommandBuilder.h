@@ -36,9 +36,11 @@
 #define GO_AHEAD LOW
 #define GO_BACK HIGH
 
-#define STD_F_FAST 60.00  // mm/sec
+#define STD_F_FAST 40.00  // mm/sec
 #define STD_F_SLOW 30.00  // mm/sec
 #define STD_F_HOME 40.00  // mm/sec
+
+#define MIN_DISTANCE 0.04
 
 
 namespace stepper_motor {
@@ -61,10 +63,12 @@ namespace stepper_motor {
             bool modeEq(const char mode[], const char comparison[]);
 
             int computeSpeedMillis(float mmPerSec, double millimeters);
-            
+
+            double computeXYPercentageErrorMargin();
+            bool computeIsXExceeding();
             double computeStartEndPosDistanceLinear(double startPos, double endPos);
             int computeSpeedMillisLinear(float mmPerSec, double xEndPos, double yEndPos, double zEndPos);
-            void buildSingleLinear(StepperCommand &command, double *startPos, double endPos, int speedMillis);
+            void buildSingleLinear(StepperCommand &command, double *startPos, double endPos, int speedMillis, int percentageErrorMargin, bool isExceeding);
 
             double computeStartEndPosDistanceCircularProjection(double startPos, double endPos, double offset, bool clockwise, bool startUp, bool endUp);
             int computeSpeedMillisCircular(float mmPerSec, double xEndPos, double yEndPos, bool clockwise, bool yStartUp, bool yEndUp);
