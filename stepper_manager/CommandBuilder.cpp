@@ -254,10 +254,10 @@ double CommandBuilder::computeXYPercentageErrorMargin(){
         mid += yDistance;
         // mid : 100 = yDistance : x
         // result = 100 - x
-        return 100.00 - (((100.00 * yDistance) / mid) * 1.55);
+        return 100.00 - ((100.00 * yDistance) / mid);
     } else if(xDistance < yDistance && xDistance > MIN_DISTANCE && yDistance > MIN_DISTANCE){
         mid += xDistance;
-        return 100.00 - (((100.00 * xDistance) / mid) * 1.55);
+        return 100.00 - ((100.00 * xDistance) / mid);
     }
     return 0;
 }
