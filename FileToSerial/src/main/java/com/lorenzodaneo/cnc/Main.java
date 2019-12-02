@@ -1,8 +1,10 @@
 package com.lorenzodaneo.cnc;
 
 
+import com.lorenzodaneo.cnc.converter.ConverterManager;
 import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * @author Lorenzo Daneo (mail to lorenzo.daneo@coolshop.it)
@@ -16,44 +18,55 @@ public class Main {
 //        sudo chmod 775 /var/lock
 //        sudo ln -s /dev/ttyACM0 /dev/ttyS33
 
-        TwoWaySerialCommunication serial = new TwoWaySerialCommunication();
+        TwoWaySerialCommunication serial = null;//new TwoWaySerialCommunication();
+        ConverterManager converterManager = new ConverterManager();
 
-        if(serial.connect("/dev/ttyS33")){
+//        if(serial.connect("/dev/ttyS33")){
 
-            String gCodeFile = "cnc.ngc";
-            int executed = executeFromFileWithPreLoading(serial, gCodeFile);
+            String gCodeFile = "gcodes/yoda.ngc";
+            int executed = executeFromFileWithPreLoading(serial, gCodeFile, converterManager);
 //            int executed = executeFromFile(serial, gCodeFile);
 //            int executed = executeTest(serial);
 
             System.out.println("Executed " + executed + " commands!");
 
+//            for(int i = 0; i < executed * 3; i++){
+//                System.out.println(serial.readLine());
+//            }
 
-            serial.close();
-
-        }
+//            serial.close();
+//
+//        }
 
     }
 
 
-    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile) throws IOException {
+
+
+    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile, ConverterManager converterManager) throws IOException {
         FileIO gCode = new FileIO(gCodeFile);
         int written = 0;
 
         String command;
         while ((command = gCode.getLine()) != null){
             command = command.trim();
-            if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.equals("EXIT")){
-                String line;
-                do {
-                    line = serial.readLine();
-                    System.out.println(line);
-//                    if(!line.startsWith("GET_NEXT") && !line.isEmpty()){
-//                        gCode.writeLine(line);
-//                    }
-                } while (!line.startsWith("GET_NEXT"));
+            if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")){
 
-                serial.writeLine(command);
-                written++;
+                command = converterManager.convertCommand(command);
+                System.out.println(command);
+//                String line;
+//                do {
+//                    line = serial.readLine();
+//                    System.out.println(line);
+////                    if(!line.startsWith("GET_NEXT") && !line.isEmpty()){
+////                        gCode.writeLine(line);
+////                    }
+//                } while (!line.startsWith("GET_NEXT"));
+
+                if(!command.isEmpty()) {
+//                    serial.writeLine(command);
+                    written++;
+                }
             }
 
         }
