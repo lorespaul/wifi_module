@@ -4,10 +4,10 @@
 #define ZC '\0'
 #define NL '\n'
 #define CR '\r'
-#define BUFFER_LENGTH 20
-#define PRELOADED 50
+#define BUFFER_LENGTH 50
+#define PRELOADED 20
 #define GET_NEXT "GET_NEXT"
-#define EXIT "EXIT"
+#define EXIT "M2"
 #define SINGLE -1
 
 #define SAFE_PIN 11
@@ -102,7 +102,7 @@ int preload(){
             if(readBuffer[0] == '-'){
                 readBuffer[0] = ' ';
                 return SINGLE;
-            } else if(strncmp(readBuffer, EXIT, 4) == 0) {
+            } else if(strncmp(readBuffer, EXIT, 2) == 0) {
                 memset(readBuffer, ZC, BUFFER_LENGTH);
                 return counter;
             }

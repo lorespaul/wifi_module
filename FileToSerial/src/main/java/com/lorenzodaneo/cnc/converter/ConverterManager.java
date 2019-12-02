@@ -68,15 +68,15 @@ public class ConverterManager {
         String fCommandString = getSection(command, CommandSectionEnum.FCommand);
         if(fCommandString != null && !fCommandString.isEmpty())
             F_LAST = new BigDecimal(fCommandString);
-        BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_H0ME) ? stdSpeedHome : stdSpeedSlow;
+        BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_SLOW) ? stdSpeedSlow : stdSpeedSlow;
         BigDecimal speedMicros = computeSpeedMicros(this.axisConverters, fCommand);
 
         List<String> actuatorsValues = new ArrayList<>();
         for(SingleAxisConverter converter : this.axisConverters){
-            actuatorsValues.add(converter.convert(speedMicros));
+            actuatorsValues.add(converter.convert(speedMicros, commandType.equals(G_H0ME)));
         }
 
-        StringBuilder builder = new StringBuilder(commandType);
+        StringBuilder builder = new StringBuilder();
         boolean valueFound = false;
         for(String val : actuatorsValues){
             if(val != null && !val.isEmpty()){

@@ -7,7 +7,7 @@ class SingleAxisConverter {
 
     private enum Direction {
         Back(1),
-        Forward(0);
+        Ahead(0);
 
         int value;
 
@@ -37,7 +37,13 @@ class SingleAxisConverter {
 
 
 
-    String convert(BigDecimal speedMicros){
+    String convert(BigDecimal speedMicros, boolean infinite){
+        if(infinite){
+            this.lastPosition = BigDecimal.ZERO;
+            this.nextPosition = null;
+            return axisId + ",i0,s" + REVOLUTION_STEPS.multiply(REVOLUTION_STEPS) + ",d" + Direction.Back.value;
+        }
+
         BigDecimal startToEndDistance = computeStartToEndDistance();
         if(startToEndDistance.compareTo(MIN_DISTANCE) < 0 || this.nextPosition == null){
             this.nextPosition = null;
@@ -48,7 +54,7 @@ class SingleAxisConverter {
 
         BigDecimal temp = this.nextPosition;
         this.nextPosition = null;
-        if(stepsToExecute.equals(BigDecimal.ZERO))
+        if(stepsToExecute.compareTo(BigDecimal.ONE) < 0)
             return null;
 
         BigDecimal halfStepInterval = speedMicros.divide(stepsToExecute, RoundingMode.HALF_EVEN).divide(TWO, RoundingMode.HALF_EVEN);
@@ -59,7 +65,7 @@ class SingleAxisConverter {
 
         Direction direction = getDirection(temp);
         this.lastPosition = temp;
-        return axisId + ",i" + halfStepInterval.longValue() + ",s" + stepsToExecute.intValue() + ",d" + direction.value;
+        return axisId + ",i" + halfStepInterval.longValue() + ",s" + stepsToExecute.longValue() + ",d" + direction.value;
     }
 
 
@@ -79,7 +85,7 @@ class SingleAxisConverter {
 
     private Direction getDirection(BigDecimal nextPosition){
         if(nextPosition.compareTo(lastPosition) >= 0)
-            return Direction.Forward;
+            return Direction.Ahead;
         return Direction.Back;
     }
 

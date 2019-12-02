@@ -4,7 +4,6 @@ package com.lorenzodaneo.cnc;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
 import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
-import java.math.BigDecimal;
 
 /**
  * @author Lorenzo Daneo (mail to lorenzo.daneo@coolshop.it)
@@ -23,7 +22,7 @@ public class Main {
 
 //        if(serial.connect("/dev/ttyS33")){
 
-            String gCodeFile = "gcodes/yoda.ngc";
+            String gCodeFile = "gcodes/test1.ngc";
             int executed = executeFromFileWithPreLoading(serial, gCodeFile, converterManager);
 //            int executed = executeFromFile(serial, gCodeFile);
 //            int executed = executeTest(serial);
@@ -46,7 +45,7 @@ public class Main {
     private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile, ConverterManager converterManager) throws IOException {
         FileIO gCode = new FileIO(gCodeFile);
         int written = 0;
-
+        int maxCommandLength = 0;
         String command;
         while ((command = gCode.getLine()) != null){
             command = command.trim();
@@ -65,13 +64,15 @@ public class Main {
 
                 if(!command.isEmpty()) {
 //                    serial.writeLine(command);
+                    if(command.length() > maxCommandLength)
+                        maxCommandLength = command.length();
                     written++;
                 }
             }
 
         }
         gCode.close();
-
+        System.out.println("Max command length: " + maxCommandLength);
         return written;
     }
 

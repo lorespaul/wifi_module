@@ -9,12 +9,7 @@
 #define StepperCommand_h
 
 #define MIN_INTERVAL 310
-
-#define REVOLUTION_STEPS 200
-#define MM_PER_REVOLUTION 8.00
-
-#define MILLIS_TO_MICROS_MID_MULTIPLIER 500
-#define CIRCULAR_EXTREME_RANGE MIN_INTERVAL
+#define REVOLUTION_STEPS 400
 
 namespace stepper_motor {
     
@@ -22,26 +17,20 @@ namespace stepper_motor {
         
         private:
             bool inExecution;
-            int stepsToExecute;
-            int direction;
-            bool circular;
             bool infinite;
             unsigned long initTime;
             unsigned long lastStepTime;
-            double halfStepInterval;
-            double circularMaxHalfStepInterval;
-            int circularMinHalfStepInterval;
-            bool cicularIncrement;
-            double cicularDeIncrementInterval;
+            unsigned long halfStepInterval;
+            long initialSteps;
+            long stepsToExecute;
+            int direction;
         
         
         public:
             StepperCommand();
             ~StepperCommand();
             int getDirection();
-            bool startInfiniteLinear(int movementTimeMillis, int dir);
-            bool startLinear(double millimeters, int movementTimeMillis, int dir);
-            bool startCircular(double mmFromProjection, double mmRadius, int movementTimeMillis, int startSpeedPercentual, int initialDir, bool initialIncrising);
+            bool startLinear(unsigned long interval, long steps, int dir);
             void forceStop();
             void stop(unsigned long timestamp);
             void halfStepDone(unsigned long timestamp, int power);
