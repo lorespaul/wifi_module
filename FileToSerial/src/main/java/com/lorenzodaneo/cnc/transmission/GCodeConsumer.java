@@ -23,7 +23,13 @@ public class GCodeConsumer extends GCodeTransmitter {
 
         while (true) {
             String command = queue.getGCode();
-            if(command != null && (command.startsWith("G") || command.startsWith("M") || command.startsWith("F"))){
+            if(command != null && (command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
+
+                boolean test = false;
+                if(command.startsWith(TEST)){
+                    test = true;
+                    command = command.replace(TEST + " ",  "");
+                }
 
                 command = command.trim();
                 command = converterManager.convertCommand(command);
@@ -31,16 +37,25 @@ public class GCodeConsumer extends GCodeTransmitter {
                 System.out.println(command);
                 if(!command.isEmpty()) {
 
-                    String line;
-                    do {
-                        line = serial.readLine();
-                        System.out.println(line);
-                    } while (!line.startsWith("GET_NEXT"));
+                    if(!test){
+                        String line;
+                        do {
+                            line = serial.readLine();
+                            System.out.println(line);
+                        } while (!line.startsWith("GET_NEXT"));
 
-                    serial.writeLine(command);
+                        serial.writeLine(command);
+                    }
+
                     if(command.length() > maxCommandLength)
                         maxCommandLength = command.length();
                     writtenCommands++;
+                }
+
+                if (command.equals(ConverterManager.FINAL_COMMAND)){
+                    System.out.println("Commands executed: " + writtenCommands);
+                    System.out.println("Max command length: " + maxCommandLength);
+                    writtenCommands = 0;
                 }
             }
 

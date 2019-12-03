@@ -34,7 +34,7 @@ void CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameter
                 steps = atol(&axisToken[1]);
                 break;
             case DIRECTION:
-                direction = axisToken[1] == GO_AHEAD_CHAR ? GO_AHEAD : axisToken[1] == GO_BACK_CHAR ? GO_BACK : -1; 
+                direction = axisToken[1] == GO_AHEAD_CHAR ? GO_AHEAD : axisToken[1] == GO_BACK_CHAR ? GO_BACK : -1;
                 break;
         }
 

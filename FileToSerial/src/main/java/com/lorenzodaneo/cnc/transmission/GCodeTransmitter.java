@@ -2,6 +2,8 @@ package com.lorenzodaneo.cnc.transmission;
 
 public abstract class GCodeTransmitter implements Runnable {
 
+    static final String TEST = "TEST";
+
     private Thread thread;
 
     GCodeTransmitter(){

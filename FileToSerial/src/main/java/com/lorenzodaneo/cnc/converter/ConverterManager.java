@@ -112,13 +112,13 @@ public class ConverterManager {
         BigDecimal linearDistance = BigDecimal.ZERO;
         for (SingleAxisConverter converter : axisConverters){
             BigDecimal axisDistance = converter.computeStartToEndDistance();
-            if(linearDistance.equals(BigDecimal.ZERO) && axisDistance.compareTo(BigDecimal.ZERO) > 0){
+            if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && axisDistance.compareTo(BigDecimal.ZERO) > 0){
                 linearDistance = axisDistance;
             } else if(axisDistance.compareTo(BigDecimal.ZERO) > 0) {
-                linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2)));
+                linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
             }
         }
-        return linearDistance.setScale(100, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
+        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
     }
 
 

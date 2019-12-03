@@ -25,7 +25,12 @@ public class GCodeProducer extends GCodeTransmitter {
             String input = scanner.nextLine();
             if(input.startsWith(GCODE_FROM_FILE)){
 
-                String filename = "gcodes/" + input.replace(GCODE_FROM_FILE, "").trim();
+                String filename = input.replace(GCODE_FROM_FILE, "").trim();
+                if(filename.startsWith(TEST)){
+                    filename = filename.replace(TEST, "").trim();
+                }
+
+                filename = "gcodes/" + filename;
                 FileIO gCode;
                 try {
                     gCode = new FileIO(filename);
@@ -36,6 +41,8 @@ public class GCodeProducer extends GCodeTransmitter {
 
                 String command;
                 while ((command = gCode.getLine()) != null){
+                    if(input.contains(TEST))
+                        command = TEST + " " + command;
                     queue.putGCode(command);
                 }
 
