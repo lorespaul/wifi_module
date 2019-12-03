@@ -30,7 +30,7 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
     if(!isInExecution() && (interval > MIN_INTERVAL || interval == 0) && steps > 0 && (dir == 0 || dir == 1)){
         this->inExecution = true;
         this->infinite = interval == 0 ? true : false;
-        this->halfStepInterval = interval;
+        this->halfStepInterval = interval == 0 ? GO_HOME_INTERVAL : interval;
         this->stepsToExecute = this->initialSteps = steps;
         this->direction = interval == 0 ? !dir : dir;
         this->initTime = micros();

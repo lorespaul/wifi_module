@@ -40,7 +40,6 @@ public class ConverterManager {
     private static final BigDecimal microsConversion = BigDecimal.valueOf(1000000);
     private static final BigDecimal stdSpeedSlow = BigDecimal.valueOf(30);
     private static final BigDecimal stdSpeedFast = BigDecimal.valueOf(40);
-    private static final BigDecimal stdSpeedHome = BigDecimal.valueOf(40);
 
     private static BigDecimal F_LAST = null;
 
@@ -51,7 +50,7 @@ public class ConverterManager {
     );
 
 
-    public String convertCommand(String command){
+    public String convertCommand(String command) throws Exception {
         if(command.equals(FINAL_COMMAND))
             return command;
 
@@ -69,24 +68,41 @@ public class ConverterManager {
         if(fCommandString != null && !fCommandString.isEmpty())
             F_LAST = new BigDecimal(fCommandString);
         BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_SLOW) ? stdSpeedSlow : stdSpeedSlow;
-        BigDecimal speedMicros = computeSpeedMicros(this.axisConverters, fCommand);
 
         List<String> actuatorsValues = new ArrayList<>();
-        for(SingleAxisConverter converter : this.axisConverters){
-            actuatorsValues.add(converter.convert(speedMicros, commandType.equals(G_H0ME)));
+        external:for(BigDecimal i = fCommand; i.compareTo(BigDecimal.ZERO) > 0; i = i.subtract(BigDecimal.ONE)){
+
+            if(i.compareTo(BigDecimal.ONE) == 0){
+                throw new Exception("Speed not adjustable.");
+            }
+            BigDecimal speedMicros = computeSpeedMicros(this.axisConverters, i);
+
+            for(SingleAxisConverter converter : this.axisConverters){
+                String value = converter.convert(speedMicros, commandType.equals(G_H0ME));
+                if(value != null && value.equals(SingleAxisConverter.RECALCULATES)){
+                    actuatorsValues.clear();
+                    continue external;
+                }
+                actuatorsValues.add(value);
+            }
+
+            break;
         }
+
+        for(SingleAxisConverter converter : this.axisConverters)
+            converter.completeConversion();
 
         StringBuilder builder = new StringBuilder();
         boolean valueFound = false;
         for(String val : actuatorsValues){
             if(val != null && !val.isEmpty()){
-                builder.append(" ");
                 builder.append(val);
+                builder.append(" ");
                 valueFound = true;
             }
         }
 
-        return valueFound ? builder.toString() : "";
+        return valueFound ? builder.toString().trim() : "";
     }
 
 
@@ -101,7 +117,7 @@ public class ConverterManager {
                 linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2)));
             }
         }
-        return linearDistance.divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
+        return linearDistance.setScale(100, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
     }
 
 

@@ -42,7 +42,7 @@ public class Main {
 
 
 
-    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile, ConverterManager converterManager) throws IOException {
+    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile, ConverterManager converterManager) throws Exception {
         FileIO gCode = new FileIO(gCodeFile);
         int written = 0;
         int maxCommandLength = 0;
@@ -52,6 +52,7 @@ public class Main {
             if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")){
 
                 command = converterManager.convertCommand(command);
+//                if(!command.isEmpty())
                 System.out.println(command);
 //                String line;
 //                do {

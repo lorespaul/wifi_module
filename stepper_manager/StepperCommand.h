@@ -11,6 +11,8 @@
 #define MIN_INTERVAL 310
 #define REVOLUTION_STEPS 400
 
+#define GO_HOME_INTERVAL 400
+
 namespace stepper_motor {
     
     class StepperCommand {
