@@ -22,8 +22,13 @@ public class FileIO {
     }
 
 
-    public String getLine() throws IOException {
-        return reader.readLine();
+    public String getLine() {
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            System.out.println("Read line from g-code file breaks.");
+            return null;
+        }
     }
 
 

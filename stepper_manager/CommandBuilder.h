@@ -11,6 +11,10 @@
 #include <Arduino.h>
 #include "StepperCommand.h"
 
+#define ZC '\0'
+#define NL '\n'
+#define CR '\r'
+
 #define SPACE " "
 #define COMMA ","
 
@@ -27,11 +31,15 @@
 #define GO_AHEAD 0
 #define GO_BACK 1
 
+#define MOTORS 3
+#define BUFFER 25
+
 namespace stepper_motor {
     
     class CommandBuilder {
 
         private:
+            char allPramatersCache[MOTORS][BUFFER];
             void buildOne(StepperCommand &command, char *oneCommandParameters);
             
         public:

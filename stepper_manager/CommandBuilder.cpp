@@ -24,7 +24,8 @@ void CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameter
     int direction;
     
     while(axisToken != NULL){
-
+        //Serial.print("axisToken: ");
+        //Serial.println(axisToken);
         switch(axisToken[0]){
             case INTERVAL:
                 interval = strtoul(&axisToken[1], NULL, 10);
@@ -48,24 +49,34 @@ void CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameter
 
 
 void CommandBuilder::build(char allCommandParameters[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
-
+    
     char *axisArrayToken = strtok(allCommandParameters, SPACE);
 
-    while(axisArrayToken != NULL){
+    int i = 0;
+    memset(allPramatersCache, ZC, BUFFER * MOTORS);
+    
+    while(axisArrayToken != NULL && i < MOTORS){
         
-        switch(axisArrayToken[0]){
-            case X:
-                this->buildOne(xCommand, &axisArrayToken[1]);
-                break;
-            case Y:
-                this->buildOne(yCommand, &axisArrayToken[1]);
-                break;
-            case Z:
-                this->buildOne(zCommand, &axisArrayToken[1]);
-                break;
-        }
-
+        strncpy(allPramatersCache[i], axisArrayToken, BUFFER - 1);
         axisArrayToken = strtok(NULL, SPACE);
+        i++;
     }
     free(axisArrayToken);
+
+    for(i = 0; i < MOTORS; i++){
+        //Serial.print("axisArrayToken: ");
+        //Serial.println(allPramatersCache[i]);
+        switch(allPramatersCache[i][0]){
+            case X:
+                this->buildOne(xCommand, &allPramatersCache[i][1]);
+                break;
+            case Y:
+                this->buildOne(yCommand, &allPramatersCache[i][1]);
+                break;
+            case Z:
+                this->buildOne(zCommand, &allPramatersCache[i][1]);
+                break;
+        }
+    }
+    
 }

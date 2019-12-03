@@ -32,7 +32,7 @@ public class ConverterManager {
     }
 
 
-    private static final String FINAL_COMMAND = "M2";
+    public static final String FINAL_COMMAND = "M2";
     private static final String G_FAST = "G00";
     private static final String G_SLOW = "G01";
     private static final String G_H0ME = "G28";
@@ -50,7 +50,7 @@ public class ConverterManager {
     );
 
 
-    public String convertCommand(String command) throws Exception {
+    public String convertCommand(String command) {
         if(command.equals(FINAL_COMMAND))
             return command;
 
@@ -73,7 +73,8 @@ public class ConverterManager {
         external:for(BigDecimal i = fCommand; i.compareTo(BigDecimal.ZERO) > 0; i = i.subtract(BigDecimal.ONE)){
 
             if(i.compareTo(BigDecimal.ONE) == 0){
-                throw new Exception("Speed not adjustable.");
+                System.out.println("Speed not adjustable.");
+                return null;
             }
             BigDecimal speedMicros = computeSpeedMicros(this.axisConverters, i);
 

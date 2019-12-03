@@ -2,6 +2,9 @@ package com.lorenzodaneo.cnc;
 
 
 import com.lorenzodaneo.cnc.converter.ConverterManager;
+import com.lorenzodaneo.cnc.transmission.GCodeConsumer;
+import com.lorenzodaneo.cnc.transmission.GCodeProducer;
+import com.lorenzodaneo.cnc.transmission.GCodeQueue;
 import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 
@@ -17,65 +20,40 @@ public class Main {
 //        sudo chmod 775 /var/lock
 //        sudo ln -s /dev/ttyACM0 /dev/ttyS33
 
-        TwoWaySerialCommunication serial = null;//new TwoWaySerialCommunication();
-        ConverterManager converterManager = new ConverterManager();
 
-//        if(serial.connect("/dev/ttyS33")){
+        TwoWaySerialCommunication serial = new TwoWaySerialCommunication();
 
-            String gCodeFile = "gcodes/test1.ngc";
-            int executed = executeFromFileWithPreLoading(serial, gCodeFile, converterManager);
+        if(serial.connect("/dev/ttyS33")){
+
+            GCodeQueue queue = new GCodeQueue(20);
+            GCodeProducer producer = new GCodeProducer(queue);
+            GCodeConsumer consumer = new GCodeConsumer(serial, queue);
+
+            producer.start();
+            consumer.start();
+
+            System.out.println("App started.");
+
+            producer.join();
+            consumer.join();
+
 //            int executed = executeFromFile(serial, gCodeFile);
 //            int executed = executeTest(serial);
 
-            System.out.println("Executed " + executed + " commands!");
+//            System.out.println("Executed " + executed + " commands!");
 
 //            for(int i = 0; i < executed * 3; i++){
 //                System.out.println(serial.readLine());
 //            }
 
-//            serial.close();
-//
-//        }
-
-    }
-
-
-
-
-    private static int executeFromFileWithPreLoading(TwoWaySerialCommunication serial, String gCodeFile, ConverterManager converterManager) throws Exception {
-        FileIO gCode = new FileIO(gCodeFile);
-        int written = 0;
-        int maxCommandLength = 0;
-        String command;
-        while ((command = gCode.getLine()) != null){
-            command = command.trim();
-            if(command.startsWith("G") || command.startsWith("M") || command.startsWith("F")){
-
-                command = converterManager.convertCommand(command);
-//                if(!command.isEmpty())
-                System.out.println(command);
-//                String line;
-//                do {
-//                    line = serial.readLine();
-//                    System.out.println(line);
-////                    if(!line.startsWith("GET_NEXT") && !line.isEmpty()){
-////                        gCode.writeLine(line);
-////                    }
-//                } while (!line.startsWith("GET_NEXT"));
-
-                if(!command.isEmpty()) {
-//                    serial.writeLine(command);
-                    if(command.length() > maxCommandLength)
-                        maxCommandLength = command.length();
-                    written++;
-                }
-            }
+            serial.close();
 
         }
-        gCode.close();
-        System.out.println("Max command length: " + maxCommandLength);
-        return written;
+
     }
+
+
+
 
     private static int executeFromFile(TwoWaySerialCommunication serial, String gCodeFile) throws IOException, InterruptedException {
 

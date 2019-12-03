@@ -1,14 +1,11 @@
 #include "Stepper.h"
 #include "CommandBuilder.h"
 
-#define ZC '\0'
-#define NL '\n'
-#define CR '\r'
 #define BUFFER_LENGTH 50
 #define PRELOADED 20
 #define GET_NEXT "GET_NEXT"
 #define EXIT "M2"
-#define SINGLE -1
+//#define SINGLE -1
 
 #define SAFE_PIN 11
 
@@ -59,12 +56,12 @@ void loop() {
             commandsMissingUntilNextPreload = preload();
         }
 
-        if(commandsMissingUntilNextPreload == SINGLE){
+        /*if(commandsMissingUntilNextPreload == SINGLE){
             //Serial.print(readBuffer);
             //Serial.println("");
             commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
             commandsMissingUntilNextPreload = 0;
-        }
+        }*/
         
         if(commandsMissingUntilNextPreload > 0){
 
@@ -99,10 +96,11 @@ int preload(){
     while(counter < PRELOADED){
         if(readCommandFromSerial() > 0){
             Serial.println(GET_NEXT);
-            if(readBuffer[0] == '-'){
+            /*if(readBuffer[0] == '-'){
                 readBuffer[0] = ' ';
                 return SINGLE;
-            } else if(strncmp(readBuffer, EXIT, 2) == 0) {
+            } else */
+            if(strncmp(readBuffer, EXIT, 2) == 0) {
                 memset(readBuffer, ZC, BUFFER_LENGTH);
                 return counter;
             }

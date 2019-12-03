@@ -20,7 +20,8 @@ public class TwoWaySerialCommunication {
     private OutputStream out;
 
     boolean connect(String portName) throws Exception {
-        Enumeration enumeration = CommPortIdentifier.getPortIdentifiers();
+
+//        Enumeration enumeration = CommPortIdentifier.getPortIdentifiers();
         CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
 
         int timeout = 2000;
