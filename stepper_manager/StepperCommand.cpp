@@ -26,6 +26,15 @@ int StepperCommand::getDirection(){
 }
 
 
+long StepperCommand::getInitialSteps(){
+    return this->initialSteps;
+}
+
+long StepperCommand::getStepsToExecute(){
+    return this->stepsToExecute;
+}
+
+
 bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
     if(!isInExecution() && (interval > MIN_INTERVAL || interval == 0) && steps > 0 && (dir == 0 || dir == 1)){
         this->inExecution = true;
@@ -35,6 +44,7 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
         this->direction = interval == 0 ? !dir : dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
+        this->isInPause = false;
         /*Serial.println("||||||||||||");
         Serial.print("Millimeters="); 
         Serial.println(millimeters);
@@ -52,7 +62,7 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
 
 
 void StepperCommand::forceStop(){
-    this->inExecution = false;
+    this->inExecution = this->isInPause = false;
     this->initTime = this->lastStepTime = this->halfStepInterval = -1;
 }
 
@@ -82,7 +92,7 @@ bool StepperCommand::isInExecution(){
 }
 
 bool StepperCommand::canDoHalfStep(unsigned long timestamp){
-    return timestamp - this->lastStepTime >= this->halfStepInterval;
+    return !this->isInPause && timestamp - this->lastStepTime >= this->halfStepInterval;
 }
 
 bool StepperCommand::stepsTerminated(){
@@ -90,4 +100,13 @@ bool StepperCommand::stepsTerminated(){
         this->stepsToExecute = INT_MAX - REVOLUTION_STEPS - 1;
     }
     return this->stepsToExecute == 0;
+}
+
+
+void StepperCommand::pause(){
+    this->isInPause = true;
+}
+
+void StepperCommand::release(){
+    this->isInPause = false;
 }

@@ -22,12 +22,12 @@ class SingleAxisConverter {
 
     private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(400);
     private static final BigDecimal MM_PER_REVOLUTION = BigDecimal.valueOf(8);
-    private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(310);
+    private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(312);
     private static final BigDecimal MIN_DISTANCE = BigDecimal.valueOf(0.02);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
 
     private final String axisId;
-    private BigDecimal lastPosition = BigDecimal.valueOf(0.0000000000);
+    private BigDecimal lastPosition = BigDecimal.valueOf(0.0);
     private BigDecimal nextPosition = null;
 
     private BigDecimal stepsToExecute;

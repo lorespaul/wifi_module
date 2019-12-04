@@ -16,11 +16,11 @@ CommandBuilder::~CommandBuilder(){
 }
 
 
-void CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameters){
+long CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameters){
 
     char *axisToken = strtok(oneCommandParameters, COMMA);
     unsigned long interval;
-    long steps;
+    long steps = 0;
     int direction;
     
     while(axisToken != NULL){
@@ -44,11 +44,14 @@ void CommandBuilder::buildOne(StepperCommand &command, char *oneCommandParameter
     free(axisToken);
     
     command.startLinear(interval, steps, direction);
+    return steps;
 }
 
 
 
 void CommandBuilder::build(char allCommandParameters[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
+
+    //this->cleanMotorsRatio();
     
     char *axisArrayToken = strtok(allCommandParameters, SPACE);
 
@@ -68,15 +71,74 @@ void CommandBuilder::build(char allCommandParameters[], StepperCommand &xCommand
         //Serial.println(allPramatersCache[i]);
         switch(allPramatersCache[i][0]){
             case X:
-                this->buildOne(xCommand, &allPramatersCache[i][1]);
+                motorsRatio[0] = this->buildOne(xCommand, &allPramatersCache[i][1]);
                 break;
             case Y:
-                this->buildOne(yCommand, &allPramatersCache[i][1]);
+                motorsRatio[1] = this->buildOne(yCommand, &allPramatersCache[i][1]);
                 break;
             case Z:
-                this->buildOne(zCommand, &allPramatersCache[i][1]);
+                motorsRatio[2] = this->buildOne(zCommand, &allPramatersCache[i][1]);
                 break;
         }
     }
+
+    /*positionMax = positionMin = positionMid = -1;
+    max = min = mid = 0;
+    this->computeRatios();
     
+    if(min != 0){
+        int realMidRatio = 0,
+            realMaxRatio = max / min;
+        if(mid > 0) {
+            realMidRatio = max / mid;
+        }
+    
+        if(positionMax > -1)
+            motorsRatio[positionMax] = realMaxRatio;
+        if(positionMin > -1)
+            motorsRatio[positionMin] = 1;
+        if(positionMid > -1)
+            motorsRatio[positionMid] = realMidRatio;   
+    } else {
+        positionMax = positionMin = positionMid = -1;
+        max = min = mid = 0;
+        this->cleanMotorsRatio();
+    }*/
+    
+}
+
+
+void CommandBuilder::cleanMotorsRatio(){
+    int i;
+    for(i = 0; i < MOTORS; i++)
+        motorsRatio[i] = 0;
+}
+
+
+void CommandBuilder::computeRatios(){
+    int i; 
+    for(i = 0; i < MOTORS; i++){
+        if(max < motorsRatio[i] && motorsRatio[i] > 0){
+            max = motorsRatio[i];
+            positionMax = i;
+        }
+        if(min > motorsRatio[i] && motorsRatio[i] > 0){
+            min = motorsRatio[i];
+            positionMin = i;
+        }
+    }
+}
+
+
+
+void CommandBuilder::resyncCommands(StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand){
+    /*if(positionMax == -1)
+        return;
+    
+    StepperCommand commands[3] = { xCommand, yCommand, zCommand };
+    
+    (commands[positionMax].getInitialSteps() - commands[positionMax].getStepsToExecute()) / motorsRation[positionMax]
+    
+
+    free(commands);*/
 }

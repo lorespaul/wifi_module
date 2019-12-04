@@ -82,6 +82,7 @@ void loop() {
     x.makeStepAsync(xCommand);
     y.makeStepAsync(yCommand);
     z.makeStepAsync(zCommand);
+    commandBuilder.resyncCommands(xCommand, yCommand, zCommand);
 
 }
 

@@ -1,7 +1,5 @@
 package com.lorenzodaneo.cnc;
 
-
-import com.lorenzodaneo.cnc.converter.ConverterManager;
 import com.lorenzodaneo.cnc.transmission.GCodeConsumer;
 import com.lorenzodaneo.cnc.transmission.GCodeProducer;
 import com.lorenzodaneo.cnc.transmission.GCodeQueue;
@@ -18,7 +16,7 @@ public class Main {
 
 //        sudo chgrp lock /var/lock
 //        sudo chmod 775 /var/lock
-//        sudo ln -s /dev/ttyACM0 /dev/ttyS33
+//        sudo ln -s /dev/ttyACM1 /dev/ttyS33
 
 
         TwoWaySerialCommunication serial = new TwoWaySerialCommunication();

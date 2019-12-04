@@ -69,6 +69,10 @@ public class ConverterManager {
             F_LAST = new BigDecimal(fCommandString);
         BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_SLOW) ? stdSpeedSlow : stdSpeedSlow;
 
+        BigDecimal linearDistance = computeLinearDistance(this.axisConverters);
+        if(linearDistance.compareTo(BigDecimal.ZERO) == 0)
+            return "";
+
         List<String> actuatorsValues = new ArrayList<>();
         external:for(BigDecimal i = fCommand; i.compareTo(BigDecimal.ZERO) > 0; i = i.subtract(BigDecimal.ONE)){
 
@@ -76,7 +80,9 @@ public class ConverterManager {
                 System.out.println("Speed not adjustable.");
                 return null;
             }
-            BigDecimal speedMicros = computeSpeedMicros(this.axisConverters, i);
+            BigDecimal speedMicros = computeSpeedMicros(linearDistance, i);
+            if(speedMicros.compareTo(BigDecimal.ZERO) == 0)
+                System.out.println("Speed is zero with command: " + command);
 
             for(SingleAxisConverter converter : this.axisConverters){
                 String value = converter.convert(speedMicros, commandType.equals(G_H0ME));
@@ -107,8 +113,7 @@ public class ConverterManager {
     }
 
 
-
-    private BigDecimal computeSpeedMicros(List<SingleAxisConverter> axisConverters, BigDecimal mmPerSec){
+    private BigDecimal computeLinearDistance(List<SingleAxisConverter> axisConverters){
         BigDecimal linearDistance = BigDecimal.ZERO;
         for (SingleAxisConverter converter : axisConverters){
             BigDecimal axisDistance = converter.computeStartToEndDistance();
@@ -118,9 +123,13 @@ public class ConverterManager {
                 linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
             }
         }
-        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
+        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
     }
 
+
+    private BigDecimal computeSpeedMicros(BigDecimal linearDistance, BigDecimal mmPerSec){
+        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
+    }
 
 
     private String getSection(String command, CommandSectionEnum sectionEnum){

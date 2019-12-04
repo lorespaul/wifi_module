@@ -34,8 +34,8 @@ public class GCodeConsumer extends GCodeTransmitter {
                 command = command.trim();
                 command = converterManager.convertCommand(command);
 
-                System.out.println(command);
                 if(!command.isEmpty()) {
+                    System.out.println(command);
 
                     if(!test){
                         String line;

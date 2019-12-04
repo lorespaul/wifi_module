@@ -34,18 +34,29 @@
 #define MOTORS 3
 #define BUFFER 25
 
+
 namespace stepper_motor {
     
     class CommandBuilder {
 
         private:
             char allPramatersCache[MOTORS][BUFFER];
-            void buildOne(StepperCommand &command, char *oneCommandParameters);
+            long motorsRatio[MOTORS];
+            int positionMax;
+            int positionMin;
+            int positionMid;
+            long max;
+            long min;
+            long mid;
+            long buildOne(StepperCommand &command, char *oneCommandParameters);
+            void computeRatios();
+            void cleanMotorsRatio();
             
         public:
             CommandBuilder();
             ~CommandBuilder();
             void build(char allCommandParameters[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
+            void resyncCommands(StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
         
     };
     

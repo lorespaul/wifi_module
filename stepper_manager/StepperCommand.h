@@ -26,12 +26,15 @@ namespace stepper_motor {
             long initialSteps;
             long stepsToExecute;
             int direction;
+            bool isInPause;
         
         
         public:
             StepperCommand();
             ~StepperCommand();
             int getDirection();
+            long getInitialSteps();
+            long getStepsToExecute();
             bool startLinear(unsigned long interval, long steps, int dir);
             void forceStop();
             void stop(unsigned long timestamp);
@@ -39,6 +42,8 @@ namespace stepper_motor {
             bool isInExecution();
             bool canDoHalfStep(unsigned long timestamp);
             bool stepsTerminated();
+            void pause();
+            void release();
         
     };
     
