@@ -1,5 +1,7 @@
 package com.lorenzodaneo.cnc.converter;
 
+import org.apache.log4j.Logger;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -15,6 +17,8 @@ class SingleAxisConverter {
             this.value = value;
         }
     }
+
+    private static Logger logger = Logger.getLogger(ConverterManager.class);
 
     static final String RECALCULATES = "RECALCULATES";
 
@@ -42,7 +46,9 @@ class SingleAxisConverter {
         return axisId.charAt(0);
     }
 
-
+    BigDecimal getLastPosition(){
+        return lastPosition;
+    }
 
     String convert(BigDecimal speedMicros, boolean infinite){
         if(infinite){
@@ -59,7 +65,7 @@ class SingleAxisConverter {
 
         BigDecimal stepsToExecute = REVOLUTION_STEPS.divide(MM_PER_REVOLUTION, RoundingMode.HALF_EVEN).multiply(startToEndDistance).setScale(0, RoundingMode.HALF_DOWN);
         if(stepsToExecute.compareTo(BigDecimal.ONE) < 0){
-            System.out.println("No steps to do.");
+            logger.warn("No steps to do.");
             this.nextPosition = null;
             return null;
         }
@@ -119,7 +125,7 @@ class SingleAxisConverter {
         if(testLastPosition.compareTo(superiorMargin) < 0 || testDistance.compareTo(inferiorMargin) > 0)
             return;
 
-        System.out.println("Test position precision failed.");
+        logger.warn("Test position precision failed.");
     }
 
 

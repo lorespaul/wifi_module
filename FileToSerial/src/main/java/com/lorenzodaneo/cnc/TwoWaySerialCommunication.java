@@ -21,35 +21,43 @@ public class TwoWaySerialCommunication {
 
     boolean connect(String portName) throws Exception {
 
-//        Enumeration enumeration = CommPortIdentifier.getPortIdentifiers();
-        CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
+        try
+        {
+            CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
 
-        int timeout = 2000;
-        if (portIdentifier.isCurrentlyOwned()) {
-            System.out.println("Error: Port is currently in use");
-            return false;
-        } else {
-            CommPort commPort = portIdentifier.open(this.getClass().getName(), timeout);
-
-            if (commPort instanceof SerialPort) {
-                serialPort = (SerialPort) commPort;
-                serialPort.setSerialPortParams(
-                        230400,
-                        SerialPort.DATABITS_8,
-                        SerialPort.STOPBITS_1,
-                        SerialPort.PARITY_NONE
-                );
-
-                in = serialPort.getInputStream();
-                out = serialPort.getOutputStream();
-
-            } else {
-                System.out.println("Error: Only serial ports are handled by this example.");
+            int timeout = 2000;
+            if (portIdentifier.isCurrentlyOwned()) {
+                System.out.println("Error: Port is currently in use");
                 return false;
+            } else {
+                CommPort commPort = portIdentifier.open(this.getClass().getName(), timeout);
+
+                if (commPort instanceof SerialPort) {
+                    serialPort = (SerialPort) commPort;
+                    serialPort.setSerialPortParams(
+                            230400,
+                            SerialPort.DATABITS_8,
+                            SerialPort.STOPBITS_1,
+                            SerialPort.PARITY_NONE
+                    );
+
+                    in = serialPort.getInputStream();
+                    out = serialPort.getOutputStream();
+
+                } else {
+                    System.out.println("Error: Only serial ports are handled.");
+                    return false;
+                }
             }
+            Thread.sleep(timeout);
+            return true;
+
+        } catch (NoSuchPortException e) {
+            System.out.println("-------------------------------------------------------------------------------");
+            System.out.println("No serial port found. App will start in testing mode.");
+            System.out.println("-------------------------------------------------------------------------------");
+            return false;
         }
-        Thread.sleep(timeout);
-        return true;
     }
 
 

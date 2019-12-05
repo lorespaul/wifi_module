@@ -4,6 +4,7 @@ import com.lorenzodaneo.cnc.transmission.GCodeConsumer;
 import com.lorenzodaneo.cnc.transmission.GCodeProducer;
 import com.lorenzodaneo.cnc.transmission.GCodeQueue;
 import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 
 /**
@@ -18,35 +19,25 @@ public class Main {
 //        sudo chmod 775 /var/lock
 //        sudo ln -s /dev/ttyACM1 /dev/ttyS33
 
-
         TwoWaySerialCommunication serial = new TwoWaySerialCommunication();
 
-        if(serial.connect("/dev/ttyS33")){
+        if(!serial.connect("/dev/ttyS33"))
+            serial = null;
 
-            GCodeQueue queue = new GCodeQueue(20);
-            GCodeProducer producer = new GCodeProducer(queue);
-            GCodeConsumer consumer = new GCodeConsumer(serial, queue);
+        GCodeQueue queue = new GCodeQueue(20);
+        GCodeProducer producer = new GCodeProducer(queue);
+        GCodeConsumer consumer = new GCodeConsumer(serial, queue);
 
-            producer.start();
-            consumer.start();
+        producer.start();
+        consumer.start();
 
-            System.out.println("App started.");
+        System.out.println("App started.");
 
-            producer.join();
-            consumer.join();
+        producer.join();
+        consumer.join();
 
-//            int executed = executeFromFile(serial, gCodeFile);
-//            int executed = executeTest(serial);
-
-//            System.out.println("Executed " + executed + " commands!");
-
-//            for(int i = 0; i < executed * 3; i++){
-//                System.out.println(serial.readLine());
-//            }
-
+        if(serial != null)
             serial.close();
-
-        }
 
     }
 
@@ -55,7 +46,7 @@ public class Main {
 
     private static int executeFromFile(TwoWaySerialCommunication serial, String gCodeFile) throws IOException, InterruptedException {
 
-        FileIO gCode = new FileIO(gCodeFile);
+        GCodeReader gCode = new GCodeReader(gCodeFile);
         String command;
         int written = 0;
         while ((command = gCode.getLine()) != null){

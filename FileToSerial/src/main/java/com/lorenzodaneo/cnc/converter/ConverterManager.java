@@ -1,5 +1,7 @@
 package com.lorenzodaneo.cnc.converter;
 
+import org.apache.log4j.Logger;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -32,6 +34,9 @@ public class ConverterManager {
     }
 
 
+    private static Logger logger = Logger.getLogger(ConverterManager.class);
+
+
     public static final String FINAL_COMMAND = "M2";
     private static final String G_FAST = "G00";
     private static final String G_SLOW = "G01";
@@ -50,9 +55,25 @@ public class ConverterManager {
     );
 
 
+    public String getCurrentPositions(){
+        StringBuilder result = new StringBuilder();
+        for(SingleAxisConverter axisConverter : this.axisConverters)
+            result.append(axisConverter.getAxisId()).append(new BigDecimal(axisConverter.getLastPosition().toString()).setScale(4, RoundingMode.HALF_EVEN).toString()).append(" ");
+        return result.toString().trim();
+    }
+
+
     public String convertCommand(String command) {
-        if(command.equals(FINAL_COMMAND))
+        if(command.equals(FINAL_COMMAND) || command.equals("")){
             return command;
+        } else if(command.matches("^F\\d+\\.?\\d+?$")){
+            String fCommandString = getSection(command, CommandSectionEnum.FCommand);
+            if(fCommandString != null) {
+                fCommandString = fCommandString.replace("F", "");
+                F_LAST = new BigDecimal(fCommandString);
+            }
+            return "";
+        }
 
         String commandType = getSection(command, CommandSectionEnum.Command);
         if(commandType == null || (!commandType.equals(G_FAST) && !commandType.equals(G_H0ME) && !commandType.equals(G_SLOW)))
@@ -77,12 +98,12 @@ public class ConverterManager {
         external:for(BigDecimal i = fCommand; i.compareTo(BigDecimal.ZERO) > 0; i = i.subtract(BigDecimal.ONE)){
 
             if(i.compareTo(BigDecimal.ONE) == 0){
-                System.out.println("Speed not adjustable.");
+                logger.warn("Speed not adjustable.");
                 return null;
             }
             BigDecimal speedMicros = computeSpeedMicros(linearDistance, i);
             if(speedMicros.compareTo(BigDecimal.ZERO) == 0)
-                System.out.println("Speed is zero with command: " + command);
+                logger.warn("Speed is zero with command: " + command);
 
             for(SingleAxisConverter converter : this.axisConverters){
                 String value = converter.convert(speedMicros, commandType.equals(G_H0ME));
@@ -136,7 +157,7 @@ public class ConverterManager {
         String[] splitting = command.split(" ");
 
         for (String section : splitting){
-            if(CommandSectionEnum.getEnum(section.charAt(0)) == sectionEnum){
+            if(section.length() > 0 && CommandSectionEnum.getEnum(section.charAt(0)) == sectionEnum){
                 return  section;
             }
         }

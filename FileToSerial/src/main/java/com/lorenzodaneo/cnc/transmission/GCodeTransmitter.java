@@ -1,6 +1,10 @@
 package com.lorenzodaneo.cnc.transmission;
 
+import org.apache.log4j.Logger;
+
 public abstract class GCodeTransmitter implements Runnable {
+
+    Logger logger = Logger.getLogger(this.getClass());
 
     static final String TEST = "TEST";
 

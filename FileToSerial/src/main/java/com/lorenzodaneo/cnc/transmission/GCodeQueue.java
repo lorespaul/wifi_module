@@ -6,12 +6,15 @@ import java.util.concurrent.Semaphore;
 
 public class GCodeQueue {
 
+    private int bufferSize;
+
     private Queue<String> queue = new LinkedList<>();
 
     private Semaphore consumerSemaphore;
     private Semaphore producerSemaphore;
 
     public GCodeQueue(int bufferSize){
+        this.bufferSize = bufferSize;
         consumerSemaphore = new Semaphore(0);
         producerSemaphore = new Semaphore(bufferSize);
     }
@@ -37,6 +40,28 @@ public class GCodeQueue {
         }
         queue.offer(gCode);
         consumerSemaphore.release();
+    }
+
+    void putGCodesOnTop(String... gCodes){
+        try {
+            producerSemaphore.acquire();
+        } catch (InterruptedException e) {
+            return;
+        }
+        for (String gCode : gCodes)
+            ((LinkedList<String>)queue).addFirst(gCode);
+        for (int i = 0; i < gCodes.length; i++)
+            consumerSemaphore.release();
+    }
+
+    void clean(){
+        Semaphore tmpConsumer = consumerSemaphore;
+        Semaphore tmpProducer = producerSemaphore;
+        consumerSemaphore = new Semaphore(0);
+        producerSemaphore = new Semaphore(bufferSize);
+        tmpConsumer.release();
+        tmpProducer.release();
+        queue = new LinkedList<>();
     }
 
 
