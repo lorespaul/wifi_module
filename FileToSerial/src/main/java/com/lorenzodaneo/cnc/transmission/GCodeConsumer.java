@@ -23,8 +23,8 @@ public class GCodeConsumer extends GCodeTransmitter {
 
         while (true) {
             try {
-                String command = queue.getGCode();
-                if(command != null && (command.startsWith("G") || command.startsWith("M2") || command.startsWith("F") || command.startsWith(TEST))){
+                String command = queue.getGCode().trim();
+                if((command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
                     if(command.startsWith("G02")){
                         System.out.println(converterManager.getCurrentPositions());
                         continue;
@@ -65,7 +65,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                 }
 
             } catch (Exception e){
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
 
         }

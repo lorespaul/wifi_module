@@ -78,8 +78,10 @@ public class GCodeProducer extends GCodeTransmitter {
                         continue;
                     }
 
+                    final String finalFilename = filename;
                     fileWorker = new Thread(() -> {
                         String command;
+                        System.out.println("Start processing file " + finalFilename);
                         while ((command = gCode.getLine()) != null){
                             if(getStopped()){
                                 System.out.println("FILE STOPPED.");
@@ -97,9 +99,11 @@ public class GCodeProducer extends GCodeTransmitter {
                                     Thread.currentThread().interrupt();
                                 }
                             }
-                            if(input.contains(TEST))
-                                command = TEST + command;
-                            queue.putGCode(command);
+                            if(!command.isEmpty()){
+                                if(input.contains(TEST))
+                                    command = TEST + command;
+                                queue.putGCode(command);
+                            }
                         }
                     });
                     setStopped(false);
@@ -112,7 +116,7 @@ public class GCodeProducer extends GCodeTransmitter {
                 }
 
             } catch (Exception e){
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
     }

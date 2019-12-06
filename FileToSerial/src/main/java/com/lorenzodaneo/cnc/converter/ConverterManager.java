@@ -76,8 +76,10 @@ public class ConverterManager {
         }
 
         String commandType = getSection(command, CommandSectionEnum.Command);
-        if(commandType == null || (!commandType.equals(G_FAST) && !commandType.equals(G_H0ME) && !commandType.equals(G_SLOW)))
-            throw new IllegalArgumentException("Command must have a type.");
+        if(commandType == null || (!commandType.equals(G_FAST) && !commandType.equals(G_H0ME) && !commandType.equals(G_SLOW))){
+            logger.warn("Command must have a type: " + command);
+            return "";
+        }
 
         for(SingleAxisConverter converter : this.axisConverters){
             String section = getSection(command, CommandSectionEnum.getEnum(converter.getAxisId()));
