@@ -3,6 +3,8 @@ package com.lorenzodaneo.cnc.transmission;
 import com.lorenzodaneo.cnc.TwoWaySerialCommunication;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
 
+import java.util.List;
+
 public class GCodeConsumer extends GCodeTransmitter {
 
     private TwoWaySerialCommunication serial;
@@ -23,8 +25,9 @@ public class GCodeConsumer extends GCodeTransmitter {
 
         while (true) {
             try {
-                String command = queue.getGCode().trim();
-                if((command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
+                String command = queue.getGCode();
+                if(command != null && (command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
+                    command = command.trim();
                     if(command.startsWith("G02")){
                         System.out.println(converterManager.getCurrentPositions());
                         continue;
@@ -36,24 +39,31 @@ public class GCodeConsumer extends GCodeTransmitter {
                         command = command.replace(TEST,  "");
                     }
 
-                    command = converterManager.convertCommand(command.trim());
+                    List<String> convertedCommands = converterManager.convertCommand(command.trim());
+                    if(convertedCommands == null)
+                        continue;
 
-                    if(!command.isEmpty()) {
-                        logger.info(command);
+                    logger.info("From command: " + command);
+//                    System.out.println("From command: " + command);
+                    for(String convertedCommand : convertedCommands){
 
-                        if(!test){
-                            String line;
-                            do {
-                                line = serial.readLine();
-    //                            System.out.println(line);
-                            } while (!line.startsWith("GET_NEXT"));
+                        if(!convertedCommand.isEmpty()) {
+                            logger.info(convertedCommand);
+//                            System.out.println(convertedCommand);
+                            if(!test){
+                                String line;
+                                do {
+                                    line = serial.readLine();
+        //                            System.out.println(line);
+                                } while (!line.startsWith("GET_NEXT"));
 
-                            serial.writeLine(command);
+                                serial.writeLine(convertedCommand);
+                            }
+
+                            if(convertedCommand.length() > maxCommandLength)
+                                maxCommandLength = convertedCommand.length();
+                            writtenCommands++;
                         }
-
-                        if(command.length() > maxCommandLength)
-                            maxCommandLength = command.length();
-                        writtenCommands++;
                     }
 
                     if (command.equals(ConverterManager.FINAL_COMMAND)){

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ConverterManager {
@@ -36,6 +37,7 @@ public class ConverterManager {
 
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
+    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2);
 
     public static final String FINAL_COMMAND = "M2";
     private static final String G_FAST = "G00";
@@ -58,27 +60,30 @@ public class ConverterManager {
     public String getCurrentPositions(){
         StringBuilder result = new StringBuilder();
         for(SingleAxisConverter axisConverter : this.axisConverters)
-            result.append(axisConverter.getAxisId()).append(new BigDecimal(axisConverter.getLastPosition().toString()).setScale(4, RoundingMode.HALF_EVEN).toString()).append(" ");
+            result.append(axisConverter.getAxisId())
+                    .append(new BigDecimal(axisConverter.getLastPosition()
+                            .toString()).setScale(4, RoundingMode.HALF_EVEN).toString())
+                    .append(" ");
         return result.toString().trim();
     }
 
 
-    public String convertCommand(String command) {
+    public List<String> convertCommand(String command) {
         if(command.equals(FINAL_COMMAND) || command.equals("")){
-            return command;
-        } else if(command.matches("^F\\d+\\.?\\d+?$")){
+            return Collections.singletonList(command);
+        } else if(command.matches("^F\\d+(\\.?\\d+)?$")){
             String fCommandString = getSection(command, CommandSectionEnum.FCommand);
             if(fCommandString != null) {
                 fCommandString = fCommandString.replace("F", "");
                 F_LAST = new BigDecimal(fCommandString);
             }
-            return "";
+            return Collections.singletonList("");
         }
 
         String commandType = getSection(command, CommandSectionEnum.Command);
         if(commandType == null || (!commandType.equals(G_FAST) && !commandType.equals(G_H0ME) && !commandType.equals(G_SLOW))){
             logger.warn("Command must have a type: " + command);
-            return "";
+            return Collections.singletonList("");
         }
 
         for(SingleAxisConverter converter : this.axisConverters){
@@ -92,58 +97,81 @@ public class ConverterManager {
             F_LAST = new BigDecimal(fCommandString);
         BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_SLOW) ? stdSpeedSlow : stdSpeedSlow;
 
-        BigDecimal linearDistance = computeLinearDistance(this.axisConverters);
+        List<SingleAxisConverter> implicatedMotors = new ArrayList<>();
+        BigDecimal linearDistance = computeLinearDistance(this.axisConverters, implicatedMotors);
         if(linearDistance.compareTo(BigDecimal.ZERO) == 0)
-            return "";
+            return Collections.singletonList("");
 
-        List<String> actuatorsValues = new ArrayList<>();
-        external:for(BigDecimal i = fCommand; i.compareTo(BigDecimal.ZERO) > 0; i = i.subtract(BigDecimal.ONE)){
-
-            if(i.compareTo(BigDecimal.ONE) == 0){
-                logger.warn("Speed not adjustable.");
-                return null;
+        List<BigDecimal> splitLinearDistance = new ArrayList<>();
+        if(implicatedMotors.size() > 1 && linearDistance.compareTo(MAX_POINT_TO_POINT_DISTANCE) > 0){
+            BigDecimal[] splitting = linearDistance.divideAndRemainder(MAX_POINT_TO_POINT_DISTANCE);
+            for(BigDecimal i = BigDecimal.ZERO; i.compareTo(splitting[0]) < 0; i = i.add(BigDecimal.ONE)){
+                splitLinearDistance.add(MAX_POINT_TO_POINT_DISTANCE);
             }
-            BigDecimal speedMicros = computeSpeedMicros(linearDistance, i);
-            if(speedMicros.compareTo(BigDecimal.ZERO) == 0)
-                logger.warn("Speed is zero with command: " + command);
+            splitLinearDistance.add(splitting[1]);
+        } else {
+            splitLinearDistance.add(linearDistance);
+        }
 
-            for(SingleAxisConverter converter : this.axisConverters){
-                String value = converter.convert(speedMicros, commandType.equals(G_H0ME));
-                if(value != null && value.equals(SingleAxisConverter.RECALCULATES)){
-                    actuatorsValues.clear();
-                    continue external;
+        List<String> resultCommands = new ArrayList<>();
+        for (int splittingPosition = 0; splittingPosition < splitLinearDistance.size(); splittingPosition++){
+            BigDecimal distance = splitLinearDistance.get(splittingPosition);
+
+            List<String> actuatorsValues = new ArrayList<>();
+            external:for(BigDecimal checkSpeed = fCommand; checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
+
+                if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
+                    logger.warn("Speed not adjustable.");
+                    return null;
                 }
-                actuatorsValues.add(value);
+                BigDecimal speedMicros = computeSpeedMicros(distance, checkSpeed);
+                if(speedMicros.compareTo(BigDecimal.ZERO) == 0)
+                    logger.warn("Speed is zero with command: " + command);
+
+                for(SingleAxisConverter converter : this.axisConverters){
+                    String value = converter.convert(speedMicros, splitLinearDistance, splittingPosition, commandType.equals(G_H0ME));
+                    if(value != null && value.equals(SingleAxisConverter.RECALCULATES)){
+                        actuatorsValues.clear();
+                        continue external;
+                    }
+                    actuatorsValues.add(value);
+                }
+
+                break;
             }
 
-            break;
-        }
+            for(SingleAxisConverter converter : this.axisConverters)
+                converter.completeConversion(splitLinearDistance, splittingPosition);
 
-        for(SingleAxisConverter converter : this.axisConverters)
-            converter.completeConversion();
-
-        StringBuilder builder = new StringBuilder();
-        boolean valueFound = false;
-        for(String val : actuatorsValues){
-            if(val != null && !val.isEmpty()){
-                builder.append(val);
-                builder.append(" ");
-                valueFound = true;
+            StringBuilder builder = new StringBuilder();
+            boolean valueFound = false;
+            for(String val : actuatorsValues){
+                if(val != null && !val.isEmpty()){
+                    builder.append(val);
+                    builder.append(" ");
+                    valueFound = true;
+                }
             }
+
+            if(valueFound)
+                resultCommands.add(builder.toString().trim());
         }
 
-        return valueFound ? builder.toString().trim() : "";
+        return resultCommands;
     }
 
 
-    private BigDecimal computeLinearDistance(List<SingleAxisConverter> axisConverters){
+    private BigDecimal computeLinearDistance(List<SingleAxisConverter> axisConverters, List<SingleAxisConverter> implicatedMotors){
         BigDecimal linearDistance = BigDecimal.ZERO;
         for (SingleAxisConverter converter : axisConverters){
             BigDecimal axisDistance = converter.computeStartToEndDistance();
-            if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && axisDistance.compareTo(BigDecimal.ZERO) > 0){
-                linearDistance = axisDistance;
-            } else if(axisDistance.compareTo(BigDecimal.ZERO) > 0) {
-                linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
+            if(axisDistance.compareTo(BigDecimal.ZERO) > 0) {
+                implicatedMotors.add(converter);
+                if(linearDistance.compareTo(BigDecimal.ZERO) == 0){
+                    linearDistance = axisDistance;
+                } else {
+                    linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
+                }
             }
         }
         return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);

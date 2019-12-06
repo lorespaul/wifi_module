@@ -105,11 +105,13 @@ public class GCodeProducer extends GCodeTransmitter {
                                 queue.putGCode(command);
                             }
                         }
+                        setStopped(true);
+                        fileWorker = null;
                     });
                     setStopped(false);
                     fileWorker.start();
 
-                } else if(input.matches("^G0[012]") || input.matches("^F\\d+")) {
+                } else if(input.matches("^G0[012].*") || input.matches("^F\\d+.*")) {
 
                     queue.putGCodesOnTop(ConverterManager.FINAL_COMMAND, input);
 

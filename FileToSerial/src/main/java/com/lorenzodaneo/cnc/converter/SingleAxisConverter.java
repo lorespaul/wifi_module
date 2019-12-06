@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 class SingleAxisConverter {
 
@@ -24,8 +25,8 @@ class SingleAxisConverter {
 
     static final int SCALE = 10;
 
-    private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(400);
     private static final BigDecimal MM_PER_REVOLUTION = BigDecimal.valueOf(8);
+    private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(400);
     private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(312);
     private static final BigDecimal MIN_DISTANCE = BigDecimal.valueOf(0.02);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
@@ -50,7 +51,7 @@ class SingleAxisConverter {
         return lastPosition;
     }
 
-    String convert(BigDecimal speedMicros, boolean infinite){
+    String convert(BigDecimal speedMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
         if(infinite){
             this.lastPosition = BigDecimal.ZERO;
             this.nextPosition = null;
@@ -63,7 +64,9 @@ class SingleAxisConverter {
             return null;
         }
 
-        BigDecimal stepsToExecute = REVOLUTION_STEPS.divide(MM_PER_REVOLUTION, RoundingMode.HALF_EVEN).multiply(startToEndDistance).setScale(0, RoundingMode.HALF_DOWN);
+        BigDecimal proportionalDistance = computeProportionalDistance(startToEndDistance, splitting, splittingPosition);
+
+        BigDecimal stepsToExecute = REVOLUTION_STEPS.divide(MM_PER_REVOLUTION, RoundingMode.HALF_EVEN).multiply(proportionalDistance).setScale(0, RoundingMode.HALF_DOWN);
         if(stepsToExecute.compareTo(BigDecimal.ONE) < 0){
             logger.warn("No steps to do.");
             this.nextPosition = null;
@@ -82,14 +85,27 @@ class SingleAxisConverter {
     }
 
 
-    void completeConversion(){
+    void completeConversion(List<BigDecimal> splitting, int splittingPosition){
         if(this.nextPosition != null){
-            checkConversionValidity();
+//            checkConversionValidity();
 //            this.lastPosition = this.nextPosition;
             BigDecimal distance = this.stepsToExecute.setScale(SCALE, RoundingMode.HALF_EVEN).multiply(MIN_DISTANCE);
             this.lastPosition = direction == Direction.Ahead ? this.lastPosition.add(distance) : this.lastPosition.subtract(distance);
         }
-        this.nextPosition = null;
+        if(splittingPosition == splitting.size() - 1)
+            this.nextPosition = null;
+    }
+
+
+    private BigDecimal computeProportionalDistance(BigDecimal startToEndDistance, List<BigDecimal> splitting, int splittingPosition){
+        if(splittingPosition == splitting.size() - 1) // at last position use startToEndDistance to not lose precision
+            return startToEndDistance;
+        BigDecimal remainingHypotenuseDistance = BigDecimal.valueOf(0.0);
+        for(int i = splittingPosition; i < splitting.size(); i++){
+            remainingHypotenuseDistance = remainingHypotenuseDistance.add(splitting.get(i));
+        }
+        // remainingHypotenuseDistance : startToEndDistance = splitting.get(i) : x
+        return startToEndDistance.multiply(splitting.get(splittingPosition)).divide(remainingHypotenuseDistance, RoundingMode.HALF_EVEN).setScale(SCALE, RoundingMode.HALF_EVEN);
     }
 
 
@@ -113,20 +129,20 @@ class SingleAxisConverter {
     }
 
 
-    private void checkConversionValidity(){
-        // 400steps : 8mm = stepsToExecute : x
-        BigDecimal testDistance = stepsToExecute.setScale(nextPosition.scale(), RoundingMode.HALF_EVEN).multiply(MIN_DISTANCE);
-        BigDecimal testLastPosition = direction == Direction.Ahead ? this.nextPosition.subtract(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN) : this.nextPosition.add(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN);
-        if(testLastPosition.compareTo(this.lastPosition) == 0)
-            return;
-
-        BigDecimal superiorMargin = lastPosition.setScale(SCALE, RoundingMode.HALF_EVEN).add(MIN_DISTANCE);
-        BigDecimal inferiorMargin = lastPosition.setScale(SCALE, RoundingMode.HALF_EVEN).subtract(MIN_DISTANCE);
-        if(testLastPosition.compareTo(superiorMargin) < 0 || testDistance.compareTo(inferiorMargin) > 0)
-            return;
-
-        logger.warn("Test position precision failed.");
-    }
+//    private void checkConversionValidity(){
+//        // 400steps : 8mm = stepsToExecute : x
+//        BigDecimal testDistance = stepsToExecute.setScale(nextPosition.scale(), RoundingMode.HALF_EVEN).multiply(MIN_DISTANCE);
+//        BigDecimal testLastPosition = direction == Direction.Ahead ? this.nextPosition.subtract(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN) : this.nextPosition.add(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN);
+//        if(testLastPosition.compareTo(this.lastPosition) == 0)
+//            return;
+//
+//        BigDecimal superiorMargin = lastPosition.setScale(SCALE, RoundingMode.HALF_EVEN).add(MIN_DISTANCE);
+//        BigDecimal inferiorMargin = lastPosition.setScale(SCALE, RoundingMode.HALF_EVEN).subtract(MIN_DISTANCE);
+//        if(testLastPosition.compareTo(superiorMargin) < 0 || testDistance.compareTo(inferiorMargin) > 0)
+//            return;
+//
+//        logger.warn("Test position precision failed.");
+//    }
 
 
 }
