@@ -51,9 +51,9 @@ public class ConverterManager {
     private static BigDecimal F_LAST = null;
 
     private List<SingleAxisConverter> axisConverters = Arrays.asList(
-            new SingleAxisConverter(CommandSectionEnum.XAxis.value),
-            new SingleAxisConverter(CommandSectionEnum.YAxis.value),
-            new SingleAxisConverter(CommandSectionEnum.ZAxis.value)
+            new SingleAxisConverter(CommandSectionEnum.XAxis.value, true),
+            new SingleAxisConverter(CommandSectionEnum.YAxis.value, true),
+            new SingleAxisConverter(CommandSectionEnum.ZAxis.value, false)
     );
 
 
@@ -110,7 +110,7 @@ public class ConverterManager {
 
         List<SingleAxisConverter> implicatedMotors = new ArrayList<>();
         BigDecimal linearDistance = computeLinearDistance(this.axisConverters, implicatedMotors);
-        if(linearDistance.compareTo(BigDecimal.ZERO) == 0)
+        if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && !command.equals(G_H0ME))
             return Collections.singletonList("");
 
         List<BigDecimal> splitLinearDistance = new ArrayList<>();

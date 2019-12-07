@@ -38,8 +38,11 @@ class SingleAxisConverter {
     private BigDecimal stepsToExecute;
     private Direction direction;
 
-    SingleAxisConverter(char axisId){
+    private boolean canBeInfinite;
+
+    SingleAxisConverter(char axisId, boolean canBeInfinite){
         this.axisId = String.valueOf(axisId);
+        this.canBeInfinite = canBeInfinite;
     }
 
 
@@ -57,7 +60,7 @@ class SingleAxisConverter {
     }
 
     String convert(BigDecimal speedMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
-        if(infinite){
+        if(infinite && canBeInfinite){
             this.lastPosition = BigDecimal.ZERO;
             this.nextPosition = null;
             return axisId + ",i0,s" + REVOLUTION_STEPS.multiply(REVOLUTION_STEPS) + ",d" + Direction.Back.value;

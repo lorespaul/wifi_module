@@ -11,10 +11,11 @@
 
 using namespace stepper_motor;
 
-StepperCommand::StepperCommand(){
+StepperCommand::StepperCommand(int infiniteDesynchronizer){
     //Serial.println("New StepperCommand");
-    this->inExecution = false;
+    this->inExecution = this->infinite = false;
     this->initTime = this->lastStepTime = this->halfStepInterval = -1;
+    this->infiniteDesynchronizer = infiniteDesynchronizer;
 }
 
 StepperCommand::~StepperCommand(){
@@ -35,7 +36,6 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
         this->direction = interval == 0 ? !dir : dir;
         this->initTime = micros();
         this->lastStepTime = this->initTime;
-        this->isInPause = false;
         /*Serial.println("||||||||||||");
         Serial.print("Millimeters="); 
         Serial.println(millimeters);
@@ -53,7 +53,7 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
 
 
 void StepperCommand::forceStop(){
-    this->inExecution = this->isInPause = false;
+    this->inExecution = this->infinite = false;
     this->initTime = this->lastStepTime = this->halfStepInterval = -1;
 }
 
@@ -71,7 +71,7 @@ void StepperCommand::stop(unsigned long timestamp){
 void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
     if(power == HIGH){
-        if(this->infinite && this->stepsToExecute == this->initialSteps - REVOLUTION_STEPS){
+        if(this->infinite && this->stepsToExecute == this->initialSteps - (REVOLUTION_STEPS - infiniteDesynchronizer)){
             this->direction = !this->direction;
         }
         this->stepsToExecute--;
@@ -83,7 +83,7 @@ bool StepperCommand::isInExecution(){
 }
 
 bool StepperCommand::canDoHalfStep(unsigned long timestamp){
-    return !this->isInPause && timestamp - this->lastStepTime >= this->halfStepInterval;
+    return timestamp - this->lastStepTime >= this->halfStepInterval;
 }
 
 bool StepperCommand::stepsTerminated(){

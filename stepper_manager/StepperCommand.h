@@ -20,17 +20,17 @@ namespace stepper_motor {
         private:
             bool inExecution;
             bool infinite;
+            int infiniteDesynchronizer;
             unsigned long initTime;
             unsigned long lastStepTime;
             unsigned long halfStepInterval;
             long initialSteps;
             long stepsToExecute;
             int direction;
-            bool isInPause;
         
         
         public:
-            StepperCommand();
+            StepperCommand(int infiniteDesynchronizer);
             ~StepperCommand();
             int getDirection();
             bool startLinear(unsigned long interval, long steps, int dir);
