@@ -57,6 +57,17 @@ public class ConverterManager {
     );
 
 
+    public ConverterManager(String initPosition){
+        if(initPosition != null && !initPosition.isEmpty()){
+            for(SingleAxisConverter converter : this.axisConverters){
+                String section = getSection(initPosition, CommandSectionEnum.getEnum(converter.getAxisId()));
+                if(section != null && !section.isEmpty())
+                    converter.setLastPosition(section);
+            }
+        }
+    }
+
+
     public String getCurrentPositions(){
         StringBuilder result = new StringBuilder();
         for(SingleAxisConverter axisConverter : this.axisConverters)

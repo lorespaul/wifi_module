@@ -41,22 +41,12 @@ namespace stepper_motor {
 
         private:
             char allPramatersCache[MOTORS][BUFFER];
-            long motorsRatio[MOTORS];
-            int positionMax;
-            int positionMin;
-            int positionMid;
-            long max;
-            long min;
-            long mid;
-            long buildOne(StepperCommand &command, char *oneCommandParameters);
-            void computeRatios();
-            void cleanMotorsRatio();
+            void buildOne(StepperCommand &command, char *oneCommandParameters);
             
         public:
             CommandBuilder();
             ~CommandBuilder();
             void build(char allCommandParameters[], StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
-            void resyncCommands(StepperCommand &xCommand, StepperCommand &yCommand, StepperCommand &zCommand);
         
     };
     

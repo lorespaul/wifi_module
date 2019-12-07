@@ -1,6 +1,6 @@
 package com.lorenzodaneo.cnc.transmission;
 
-import com.lorenzodaneo.cnc.GCodeReader;
+import com.lorenzodaneo.cnc.fileio.GCodeReader;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
 
 import java.io.IOException;
@@ -105,6 +105,7 @@ public class GCodeProducer extends GCodeTransmitter {
                                 queue.putGCode(command);
                             }
                         }
+                        gCode.close();
                         setStopped(true);
                         fileWorker = null;
                     });

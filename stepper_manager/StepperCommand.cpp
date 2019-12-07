@@ -26,15 +26,6 @@ int StepperCommand::getDirection(){
 }
 
 
-long StepperCommand::getInitialSteps(){
-    return this->initialSteps;
-}
-
-long StepperCommand::getStepsToExecute(){
-    return this->stepsToExecute;
-}
-
-
 bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
     if(!isInExecution() && (interval > MIN_INTERVAL || interval == 0) && steps > 0 && (dir == 0 || dir == 1)){
         this->inExecution = true;
@@ -100,13 +91,4 @@ bool StepperCommand::stepsTerminated(){
         this->stepsToExecute = INT_MAX - REVOLUTION_STEPS - 1;
     }
     return this->stepsToExecute == 0;
-}
-
-
-void StepperCommand::pause(){
-    this->isInPause = true;
-}
-
-void StepperCommand::release(){
-    this->isInPause = false;
 }

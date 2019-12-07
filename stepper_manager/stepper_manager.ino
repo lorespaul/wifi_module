@@ -11,13 +11,13 @@
 
 #define SERIAL_BAUD 230400
 
+using namespace stepper_motor;
+
 char readBuffer[BUFFER_LENGTH];
 char preloadedCommands[PRELOADED][BUFFER_LENGTH];
 
 int commandsMissingUntilNextPreload = 0;
 int currentPreloaded = 0;
-
-using namespace stepper_motor;
 
 Stepper x(6, 7, 8);
 Stepper y(4, 5, 9);
@@ -55,13 +55,6 @@ void loop() {
         if(commandsMissingUntilNextPreload == 0){
             commandsMissingUntilNextPreload = preload();
         }
-
-        /*if(commandsMissingUntilNextPreload == SINGLE){
-            //Serial.print(readBuffer);
-            //Serial.println("");
-            commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
-            commandsMissingUntilNextPreload = 0;
-        }*/
         
         if(commandsMissingUntilNextPreload > 0){
 
@@ -82,7 +75,6 @@ void loop() {
     x.makeStepAsync(xCommand);
     y.makeStepAsync(yCommand);
     z.makeStepAsync(zCommand);
-    commandBuilder.resyncCommands(xCommand, yCommand, zCommand);
 
 }
 
@@ -97,10 +89,7 @@ int preload(){
     while(counter < PRELOADED){
         if(readCommandFromSerial() > 0){
             Serial.println(GET_NEXT);
-            /*if(readBuffer[0] == '-'){
-                readBuffer[0] = ' ';
-                return SINGLE;
-            } else */
+            
             if(strncmp(readBuffer, EXIT, 2) == 0) {
                 memset(readBuffer, ZC, BUFFER_LENGTH);
                 return counter;
@@ -121,7 +110,6 @@ int readCommandFromSerial(){
         int bytes = Serial.readBytesUntil(NL, readBuffer, BUFFER_LENGTH);
         if(bytes == 1 && (readBuffer[0] == NL || readBuffer[0] == CR))
             return 0;
-        //G01 X563 Y7 Z34 F567
         //Serial.println(readBuffer);
         return bytes;
     }

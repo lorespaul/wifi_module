@@ -51,6 +51,11 @@ class SingleAxisConverter {
         return lastPosition;
     }
 
+    void setLastPosition(String axisValueString){
+        axisValueString = axisValueString.replace(axisId, "");
+        this.lastPosition = new BigDecimal(axisValueString).setScale(SCALE, RoundingMode.HALF_EVEN);
+    }
+
     String convert(BigDecimal speedMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
         if(infinite){
             this.lastPosition = BigDecimal.ZERO;

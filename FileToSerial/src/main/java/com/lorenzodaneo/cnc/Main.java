@@ -1,5 +1,7 @@
 package com.lorenzodaneo.cnc;
 
+import com.lorenzodaneo.cnc.fileio.GCodeReader;
+import com.lorenzodaneo.cnc.fileio.PositionCache;
 import com.lorenzodaneo.cnc.transmission.GCodeConsumer;
 import com.lorenzodaneo.cnc.transmission.GCodeProducer;
 import com.lorenzodaneo.cnc.transmission.GCodeQueue;
@@ -24,9 +26,10 @@ public class Main {
         if(!serial.connect("/dev/ttyS33"))
             serial = null;
 
+        PositionCache cache = new PositionCache();
         GCodeQueue queue = new GCodeQueue(20);
         GCodeProducer producer = new GCodeProducer(queue);
-        GCodeConsumer consumer = new GCodeConsumer(serial, queue);
+        GCodeConsumer consumer = new GCodeConsumer(serial, queue, cache);
 
         producer.start();
         consumer.start();
@@ -36,6 +39,7 @@ public class Main {
         producer.join();
         consumer.join();
 
+        cache.close();
         if(serial != null)
             serial.close();
 

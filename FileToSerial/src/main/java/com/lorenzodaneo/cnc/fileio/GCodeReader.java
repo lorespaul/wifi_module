@@ -1,4 +1,4 @@
-package com.lorenzodaneo.cnc;
+package com.lorenzodaneo.cnc.fileio;
 
 import org.apache.log4j.Logger;
 
@@ -27,8 +27,13 @@ public class GCodeReader {
     }
 
 
-    void close() throws IOException {
-        reader.close();
+    public void close() {
+        try {
+            if(reader != null)
+                reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

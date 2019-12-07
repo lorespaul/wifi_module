@@ -2,6 +2,7 @@ package com.lorenzodaneo.cnc.transmission;
 
 import com.lorenzodaneo.cnc.TwoWaySerialCommunication;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
+import com.lorenzodaneo.cnc.fileio.PositionCache;
 
 import java.util.List;
 
@@ -9,15 +10,18 @@ public class GCodeConsumer extends GCodeTransmitter {
 
     private TwoWaySerialCommunication serial;
     private GCodeQueue queue;
-    private ConverterManager converterManager = new ConverterManager();
+    private PositionCache cache;
+    private ConverterManager converterManager;
 
     private int maxCommandLength = 0;
     private int writtenCommands = 0;
 
-    public GCodeConsumer(TwoWaySerialCommunication serial, GCodeQueue queue){
+    public GCodeConsumer(TwoWaySerialCommunication serial, GCodeQueue queue, PositionCache cache){
         super();
         this.serial = serial;
         this.queue = queue;
+        this.cache = cache;
+        this.converterManager = new ConverterManager(cache.readPosition());
     }
 
     @Override
@@ -58,6 +62,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                                 } while (!line.startsWith("GET_NEXT"));
 
                                 serial.writeLine(convertedCommand);
+                                cache.writePosition(converterManager.getCurrentPositions());
                             }
 
                             if(convertedCommand.length() > maxCommandLength)
