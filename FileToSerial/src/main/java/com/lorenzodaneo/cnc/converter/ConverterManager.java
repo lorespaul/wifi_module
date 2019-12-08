@@ -14,7 +14,7 @@ public class ConverterManager {
 
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
-    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2);
+    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2.0);
 
     public static final String COMMAND_GET_CURRENT_POSITION = "M114";
     public static final String FINAL_COMMAND = "M2";
@@ -84,7 +84,7 @@ public class ConverterManager {
                 converter.putNextPosition(section);
         }
 
-        BigDecimal mmPerSecSpeed = cachedFCommand != null ? cachedFCommand : commandType.equals(G_FAST) ? STD_SPEED_FAST : commandType.equals(G_SLOW) ? STD_SPEED_SLOW : STD_SPEED_SLOW;
+        BigDecimal mmPerSecSpeed = commandType.equals(G_FAST) ? STD_SPEED_FAST : cachedFCommand != null ? cachedFCommand :  STD_SPEED_SLOW;
 
         List<SingleAxisConverter> implicatedMotors = new ArrayList<>();
         BigDecimal linearDistance = computeLinearDistance(this.axisConverters, implicatedMotors);

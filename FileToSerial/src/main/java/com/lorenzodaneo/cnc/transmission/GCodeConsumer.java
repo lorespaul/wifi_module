@@ -45,7 +45,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                     if(convertedCommands == null)
                         continue;
 
-                    logger.info("From command: " + command);
+                    logger.info("From command: " + command + " - to position " + converterManager.getCurrentPositions(false));
 //                    System.out.println("From command: " + command);
                     for(String convertedCommand : convertedCommands){
 
