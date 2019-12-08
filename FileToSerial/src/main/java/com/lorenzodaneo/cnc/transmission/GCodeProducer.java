@@ -1,17 +1,24 @@
 package com.lorenzodaneo.cnc.transmission;
 
+import com.lorenzodaneo.cnc.converter.CommandSectionEnum;
 import com.lorenzodaneo.cnc.fileio.GCodeReader;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
+import com.lorenzodaneo.cnc.fileio.PositionCache;
+import com.lorenzodaneo.cnc.listeners.IKeyInputReceiver;
+import com.lorenzodaneo.cnc.listeners.KeyEnum;
+import com.lorenzodaneo.cnc.listeners.KeyInputListener;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Scanner;
 
-public class GCodeProducer extends GCodeTransmitter {
+public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver {
 
-    private GCodeQueue queue;
     private Scanner scanner = new Scanner(System.in);
 
     private Thread fileWorker = null;
+
+    private PositionCache cache;
 
     private static final String GCODE_FROM_FILE = "FILE";
     private static final String STOP_FILE = "STOP";
@@ -22,9 +29,12 @@ public class GCodeProducer extends GCodeTransmitter {
     private boolean paused = false;
     private boolean stopped = true;
 
-    public GCodeProducer(GCodeQueue queue){
-        super();
-        this.queue = queue;
+    public GCodeProducer(GCodeQueue queue, PositionCache cache){
+        super(queue);
+        this.cache = cache;
+        KeyInputListener keyListener = new KeyInputListener();
+        keyListener.setReceiver(this);
+        keyListener.setVisible(true);
     }
 
     @Override
@@ -114,6 +124,8 @@ public class GCodeProducer extends GCodeTransmitter {
 
                 } else if(input.equals(ConverterManager.G_H0ME) || input.equals(ConverterManager.COMMAND_GET_CURRENT_POSITION) || input.matches("^G0[01].*") || input.matches("^F\\d+.*")) {
 
+                    if(input.equals(ConverterManager.G_H0ME))
+                        positions = null;
                     queue.putGCodesOnTop(ConverterManager.FINAL_COMMAND, input);
 
                 }
@@ -139,6 +151,79 @@ public class GCodeProducer extends GCodeTransmitter {
 
     private synchronized void setStopped(boolean stopped){
         this.stopped = stopped;
+    }
+
+    private static final String HOME_POSITION = "X0.0000 Y0.0000 Z0.0000";
+    private static final BigDecimal SIX = BigDecimal.valueOf(6);
+    private String positions = null;
+
+    @Override
+    public void gotKey(KeyEnum key) {
+        if(fileWorker == null){
+
+            if (positions == null)
+                positions = cache.readPosition();
+            if(positions == null || positions.isEmpty())
+                positions = HOME_POSITION;
+
+            String axisPosition = null;
+            char axisKey = ' ';
+            switch (key){
+                case ArrowTop:
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.YAxis, true);
+                    axisKey = CommandSectionEnum.YAxis.value;
+                    break;
+                case ArrowDown:
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.YAxis, false);
+                    axisKey = CommandSectionEnum.YAxis.value;
+                    break;
+                case ArrowLeft:
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, true);
+                    axisKey = CommandSectionEnum.XAxis.value;
+                    break;
+                case ArrowRight:
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, false);
+                    axisKey = CommandSectionEnum.XAxis.value;
+                    break;
+                case ZChar:
+                    axisPosition = changeZPosition(positions);
+                    axisKey = CommandSectionEnum.ZAxis.value;
+                    break;
+            }
+            if(axisPosition != null) {
+                queue.putGCode(ConverterManager.G_FAST + " " + axisPosition);
+                queue.putGCode(ConverterManager.FINAL_COMMAND);
+                if(axisKey != ' '){
+                    positions = positions.replaceAll(axisKey + "-?\\d+(\\.\\d+)?", axisPosition);
+                }
+            }
+        }
+    }
+
+    private String changeXYPosition(String position, CommandSectionEnum section, boolean add){
+        String currentValueString = ConverterManager.getSection(position, section);
+        if(currentValueString != null){
+            BigDecimal currentValue = new BigDecimal(currentValueString.replace(String.valueOf(section.value), ""));
+            if(add){
+                return section.value + currentValue.add(BigDecimal.ONE).toString();
+            } else if(currentValue.compareTo(BigDecimal.ZERO) > 0) {
+                return section.value + currentValue.subtract(BigDecimal.ONE).toString();
+            }
+        }
+        return null;
+    }
+
+    private String changeZPosition(String position){
+        String currentValueString = ConverterManager.getSection(position, CommandSectionEnum.ZAxis);
+        if(currentValueString != null){
+            BigDecimal currentValue = new BigDecimal(currentValueString.replace(String.valueOf(CommandSectionEnum.ZAxis.value), ""));
+            if(currentValue.compareTo(BigDecimal.ZERO) == 0){
+                return CommandSectionEnum.ZAxis.value + currentValue.add(SIX).toString();
+            } else {
+                return CommandSectionEnum.ZAxis.value + currentValue.subtract(SIX).toString();
+            }
+        }
+        return null;
     }
 
 }

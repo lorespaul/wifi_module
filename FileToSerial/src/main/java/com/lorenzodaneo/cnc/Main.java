@@ -2,11 +2,13 @@ package com.lorenzodaneo.cnc;
 
 import com.lorenzodaneo.cnc.fileio.GCodeReader;
 import com.lorenzodaneo.cnc.fileio.PositionCache;
+import com.lorenzodaneo.cnc.listeners.KeyInputListener;
 import com.lorenzodaneo.cnc.transmission.GCodeConsumer;
 import com.lorenzodaneo.cnc.transmission.GCodeProducer;
 import com.lorenzodaneo.cnc.transmission.GCodeQueue;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.*;
 import java.io.IOException;
 
 /**
@@ -28,7 +30,7 @@ public class Main {
 
         PositionCache cache = new PositionCache();
         GCodeQueue queue = new GCodeQueue(20);
-        GCodeProducer producer = new GCodeProducer(queue);
+        GCodeProducer producer = new GCodeProducer(queue, cache);
         GCodeConsumer consumer = new GCodeConsumer(serial, queue, cache);
 
         producer.start();

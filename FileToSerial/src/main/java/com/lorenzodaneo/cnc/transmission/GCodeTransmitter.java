@@ -5,13 +5,15 @@ import org.apache.log4j.Logger;
 public abstract class GCodeTransmitter implements Runnable {
 
     Logger logger = Logger.getLogger(this.getClass());
+    protected GCodeQueue queue;
 
     static final String TEST = "TEST";
 
     private Thread thread;
 
-    GCodeTransmitter(){
+    GCodeTransmitter(GCodeQueue queue){
         thread = new Thread(this);
+        this.queue = queue;
     }
 
 

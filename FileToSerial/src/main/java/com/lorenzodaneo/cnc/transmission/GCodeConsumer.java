@@ -9,7 +9,6 @@ import java.util.List;
 public class GCodeConsumer extends GCodeTransmitter {
 
     private TwoWaySerialCommunication serial;
-    private GCodeQueue queue;
     private PositionCache cache;
     private ConverterManager converterManager;
 
@@ -17,9 +16,8 @@ public class GCodeConsumer extends GCodeTransmitter {
     private int writtenCommands = 0;
 
     public GCodeConsumer(TwoWaySerialCommunication serial, GCodeQueue queue, PositionCache cache){
-        super();
+        super(queue);
         this.serial = serial;
-        this.queue = queue;
         this.cache = cache;
         this.converterManager = new ConverterManager(cache.readPosition());
     }

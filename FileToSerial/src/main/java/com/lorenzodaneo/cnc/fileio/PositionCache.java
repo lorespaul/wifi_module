@@ -21,7 +21,12 @@ public class PositionCache {
 
     public String readPosition(){
         try {
-            return reader.readLine();
+            if(reader != null)
+                reader.close();
+            reader = openReader();
+            if(reader != null){
+                return reader.readLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -37,6 +42,16 @@ public class PositionCache {
             writer.print(position);
             writer.flush();
         }
+    }
+
+
+    private BufferedReader openReader(){
+        try {
+            return new BufferedReader(new FileReader(CACHE_FILENAME));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

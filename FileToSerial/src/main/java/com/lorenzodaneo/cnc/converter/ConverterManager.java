@@ -12,29 +12,6 @@ import java.util.List;
 public class ConverterManager {
 
 
-    private enum CommandSectionEnum {
-        Command(' '),
-        FCommand('F'),
-        XAxis('X'),
-        YAxis('Y'),
-        ZAxis('Z');
-
-        char value;
-
-        CommandSectionEnum(char value){
-            this.value = value;
-        }
-
-        static CommandSectionEnum getEnum(char value){
-            for(CommandSectionEnum sectionEnum : CommandSectionEnum.values()){
-                if(sectionEnum.value == value)
-                    return sectionEnum;
-            }
-            return CommandSectionEnum.Command;
-        }
-    }
-
-
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
     private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2);
@@ -195,7 +172,7 @@ public class ConverterManager {
     }
 
 
-    private String getSection(String command, CommandSectionEnum sectionEnum){
+    public static String getSection(String command, CommandSectionEnum sectionEnum){
         String[] splitting = command.split(" ");
 
         for (String section : splitting){
