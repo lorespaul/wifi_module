@@ -30,6 +30,7 @@ class SingleAxisConverter {
     private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(312);
     private static final BigDecimal MIN_DISTANCE = BigDecimal.valueOf(0.02);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
+    private static final long MAX_AXIS_LENGTH_STEPS = 20000;
 
     private final String axisId;
     private BigDecimal lastPosition = BigDecimal.valueOf(0.0);
@@ -63,7 +64,7 @@ class SingleAxisConverter {
         if(infinite && canBeInfinite){
             this.lastPosition = BigDecimal.ZERO;
             this.nextPosition = null;
-            return axisId + ",i0,s" + REVOLUTION_STEPS.multiply(REVOLUTION_STEPS) + ",d" + Direction.Back.value;
+            return axisId + ",i0,s" + MAX_AXIS_LENGTH_STEPS + ",d" + Direction.Back.value;
         }
 
         BigDecimal startToEndDistance = computeStartToEndDistance();

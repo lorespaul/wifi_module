@@ -35,13 +35,13 @@ void Stepper::begin(){
 void Stepper::makeStepAsync(StepperCommand &command){
 
     if(digitalRead(this->homePin) == HIGH){
-        Serial.println("HOME!");
-        delay(3);
-        command.forceStop();
-        this->direction = LOW;
-        this->step = LOW;
-        digitalWrite(this->directionPin, this->direction);
-        digitalWrite(this->stepPin, this->step);
+        //delay(3);
+        if(command.forceStop()){
+            this->direction = LOW;
+            this->step = LOW;
+            digitalWrite(this->directionPin, this->direction);
+            digitalWrite(this->stepPin, this->step);
+        }
         return;
     }
     

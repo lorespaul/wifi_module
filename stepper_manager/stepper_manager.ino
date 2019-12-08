@@ -23,9 +23,9 @@ Stepper x(6, 7, 8);
 Stepper y(4, 5, 9);
 Stepper z(2, 3, 10);
 
-StepperCommand xCommand(50);
-StepperCommand yCommand(100);
-StepperCommand zCommand(0);
+StepperCommand xCommand;
+StepperCommand yCommand;
+StepperCommand zCommand;
 
 CommandBuilder commandBuilder;
 

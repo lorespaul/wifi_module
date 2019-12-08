@@ -39,16 +39,17 @@ public class ConverterManager {
 
     private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2);
 
+    public static final String COMMAND_GET_CURRENT_POSITION = "M114";
     public static final String FINAL_COMMAND = "M2";
-    private static final String G_FAST = "G00";
-    private static final String G_SLOW = "G01";
-    private static final String G_H0ME = "G28";
+    public static final String G_FAST = "G00";
+    public static final String G_SLOW = "G01";
+    public static final String G_H0ME = "G28";
 
-    private static final BigDecimal microsConversion = BigDecimal.valueOf(1000000);
-    private static final BigDecimal stdSpeedSlow = BigDecimal.valueOf(30);
-    private static final BigDecimal stdSpeedFast = BigDecimal.valueOf(40);
+    private static final BigDecimal MICROS_CONVERSION = BigDecimal.valueOf(1000000);
+    private static final BigDecimal STD_SPEED_SLOW = BigDecimal.valueOf(30);
+    private static final BigDecimal STD_SPEED_FAST = BigDecimal.valueOf(40);
 
-    private static BigDecimal F_LAST = null;
+    private static BigDecimal cachedFCommand = null;
 
     private List<SingleAxisConverter> axisConverters = Arrays.asList(
             new SingleAxisConverter(CommandSectionEnum.XAxis.value, true),
@@ -68,13 +69,15 @@ public class ConverterManager {
     }
 
 
-    public String getCurrentPositions(){
+    public String getCurrentPositions(boolean appendUserSpeed){
         StringBuilder result = new StringBuilder();
         for(SingleAxisConverter axisConverter : this.axisConverters)
             result.append(axisConverter.getAxisId())
                     .append(new BigDecimal(axisConverter.getLastPosition()
                             .toString()).setScale(4, RoundingMode.HALF_EVEN).toString())
                     .append(" ");
+        if(cachedFCommand != null && appendUserSpeed)
+            result.append("F").append(cachedFCommand.toString());
         return result.toString().trim();
     }
 
@@ -82,13 +85,14 @@ public class ConverterManager {
     public List<String> convertCommand(String command) {
         if(command.equals(FINAL_COMMAND) || command.equals("")){
             return Collections.singletonList(command);
-        } else if(command.matches("^F\\d+(\\.?\\d+)?$")){
-            String fCommandString = getSection(command, CommandSectionEnum.FCommand);
-            if(fCommandString != null) {
-                fCommandString = fCommandString.replace("F", "");
-                F_LAST = new BigDecimal(fCommandString);
-            }
-            return Collections.singletonList("");
+        }
+
+        String fCommandString = getSection(command, CommandSectionEnum.FCommand);
+        if(fCommandString != null && !fCommandString.isEmpty()) {
+            fCommandString = fCommandString.replace("F", "");
+            cachedFCommand = new BigDecimal(fCommandString);
+            if(cachedFCommand.compareTo(BigDecimal.TEN) < 0 || cachedFCommand.compareTo(STD_SPEED_FAST) > 0)
+                cachedFCommand = null;
         }
 
         String commandType = getSection(command, CommandSectionEnum.Command);
@@ -103,10 +107,7 @@ public class ConverterManager {
                 converter.putNextPosition(section);
         }
 
-        String fCommandString = getSection(command, CommandSectionEnum.FCommand);
-        if(fCommandString != null && !fCommandString.isEmpty())
-            F_LAST = new BigDecimal(fCommandString);
-        BigDecimal fCommand = F_LAST != null ? F_LAST : commandType.equals(G_FAST) ? stdSpeedFast : commandType.equals(G_SLOW) ? stdSpeedSlow : stdSpeedSlow;
+        BigDecimal mmPerSecSpeed = cachedFCommand != null ? cachedFCommand : commandType.equals(G_FAST) ? STD_SPEED_FAST : commandType.equals(G_SLOW) ? STD_SPEED_SLOW : STD_SPEED_SLOW;
 
         List<SingleAxisConverter> implicatedMotors = new ArrayList<>();
         BigDecimal linearDistance = computeLinearDistance(this.axisConverters, implicatedMotors);
@@ -129,7 +130,7 @@ public class ConverterManager {
             BigDecimal distance = splitLinearDistance.get(splittingPosition);
 
             List<String> actuatorsValues = new ArrayList<>();
-            external:for(BigDecimal checkSpeed = fCommand; checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
+            external:for(BigDecimal checkSpeed = mmPerSecSpeed; checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
 
                 if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
                     logger.warn("Speed not adjustable.");
@@ -190,7 +191,7 @@ public class ConverterManager {
 
 
     private BigDecimal computeSpeedMicros(BigDecimal linearDistance, BigDecimal mmPerSec){
-        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(microsConversion);
+        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(MICROS_CONVERSION);
     }
 
 

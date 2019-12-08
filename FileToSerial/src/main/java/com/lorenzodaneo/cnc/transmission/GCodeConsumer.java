@@ -32,8 +32,8 @@ public class GCodeConsumer extends GCodeTransmitter {
                 String command = queue.getGCode();
                 if(command != null && (command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
                     command = command.trim();
-                    if(command.startsWith("G02")){
-                        System.out.println(converterManager.getCurrentPositions());
+                    if(command.startsWith(ConverterManager.COMMAND_GET_CURRENT_POSITION)){
+                        System.out.println(converterManager.getCurrentPositions(true));
                         continue;
                     }
 
@@ -62,7 +62,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                                 } while (!line.startsWith("GET_NEXT"));
 
                                 serial.writeLine(convertedCommand);
-                                cache.writePosition(converterManager.getCurrentPositions());
+                                cache.writePosition(converterManager.getCurrentPositions(false));
                             }
 
                             if(convertedCommand.length() > maxCommandLength)

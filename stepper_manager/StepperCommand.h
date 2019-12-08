@@ -10,6 +10,7 @@
 
 #define MIN_INTERVAL 310
 #define REVOLUTION_STEPS 400
+#define QUARTER_REVOLUTION_STEPS REVOLUTION_STEPS/4
 
 #define GO_HOME_INTERVAL 400
 
@@ -20,8 +21,6 @@ namespace stepper_motor {
         private:
             bool inExecution;
             bool infinite;
-            int infiniteDesynchronizer;
-            unsigned long initTime;
             unsigned long lastStepTime;
             unsigned long halfStepInterval;
             long initialSteps;
@@ -30,11 +29,11 @@ namespace stepper_motor {
         
         
         public:
-            StepperCommand(int infiniteDesynchronizer);
+            StepperCommand();
             ~StepperCommand();
             int getDirection();
             bool startLinear(unsigned long interval, long steps, int dir);
-            void forceStop();
+            bool forceStop();
             void stop(unsigned long timestamp);
             void halfStepDone(unsigned long timestamp, int power);
             bool isInExecution();

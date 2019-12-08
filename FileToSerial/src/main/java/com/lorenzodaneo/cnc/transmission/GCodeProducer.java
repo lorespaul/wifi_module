@@ -112,7 +112,7 @@ public class GCodeProducer extends GCodeTransmitter {
                     setStopped(false);
                     fileWorker.start();
 
-                } else if(input.equals("G28") || input.matches("^G0[012].*") || input.matches("^F\\d+.*")) {
+                } else if(input.equals(ConverterManager.G_H0ME) || input.equals(ConverterManager.COMMAND_GET_CURRENT_POSITION) || input.matches("^G0[01].*") || input.matches("^F\\d+.*")) {
 
                     queue.putGCodesOnTop(ConverterManager.FINAL_COMMAND, input);
 

@@ -11,15 +11,12 @@
 
 using namespace stepper_motor;
 
-StepperCommand::StepperCommand(int infiniteDesynchronizer){
-    //Serial.println("New StepperCommand");
+StepperCommand::StepperCommand(){
     this->inExecution = this->infinite = false;
-    this->initTime = this->lastStepTime = this->halfStepInterval = -1;
-    this->infiniteDesynchronizer = infiniteDesynchronizer;
+    this->lastStepTime = this->halfStepInterval = -1;
 }
 
 StepperCommand::~StepperCommand(){
-    //Serial.println("Destroy StepperCommand");
 }
 
 int StepperCommand::getDirection(){
@@ -34,36 +31,24 @@ bool StepperCommand::startLinear(unsigned long interval, long steps, int dir){
         this->halfStepInterval = interval == 0 ? GO_HOME_INTERVAL : interval;
         this->stepsToExecute = this->initialSteps = steps;
         this->direction = interval == 0 ? !dir : dir;
-        this->initTime = micros();
-        this->lastStepTime = this->initTime;
-        /*Serial.println("||||||||||||");
-        Serial.print("Millimeters="); 
-        Serial.println(millimeters);
-        Serial.print("In millis="); 
-        Serial.println(movementTimeMillis);
-        Serial.print("Half speed micros="); 
-        Serial.println(this->halfStepInterval);
-        Serial.print("Total steps="); 
-        Serial.println(this->stepsToExecute);
-        Serial.println("+++++++++++");*/
+        this->lastStepTime = micros();
         return true;
     }
     return false;
 }
 
 
-void StepperCommand::forceStop(){
+bool StepperCommand::forceStop(){
+    if(!this->inExecution)
+        return false;
     this->inExecution = this->infinite = false;
-    this->initTime = this->lastStepTime = this->halfStepInterval = -1;
+    this->lastStepTime = this->halfStepInterval = -1;
+    return true;
 }
 
 void StepperCommand::stop(unsigned long timestamp){
     if(!stepsTerminated())
         return;
-    
-    //Serial.print("Command end in ");
-    //Serial.print((timestamp - this->initTime) / 1000);
-    //Serial.println(" millis.");
     forceStop();
 }
 
@@ -71,7 +56,7 @@ void StepperCommand::stop(unsigned long timestamp){
 void StepperCommand::halfStepDone(unsigned long timestamp, int power){
     this->lastStepTime = timestamp;
     if(power == HIGH){
-        if(this->infinite && this->stepsToExecute == this->initialSteps - (REVOLUTION_STEPS - infiniteDesynchronizer)){
+        if(this->infinite && this->stepsToExecute == this->initialSteps - QUARTER_REVOLUTION_STEPS){
             this->direction = !this->direction;
         }
         this->stepsToExecute--;
@@ -87,8 +72,8 @@ bool StepperCommand::canDoHalfStep(unsigned long timestamp){
 }
 
 bool StepperCommand::stepsTerminated(){
-    if(this->infinite && this->stepsToExecute == 0){
-        this->stepsToExecute = INT_MAX - REVOLUTION_STEPS - 1;
-    }
+    /*if(this->infinite && this->stepsToExecute == 0){
+        this->stepsToExecute = this->initialSteps - QUARTER_REVOLUTION_STEPS - 1;
+    }*/
     return this->stepsToExecute == 0;
 }
