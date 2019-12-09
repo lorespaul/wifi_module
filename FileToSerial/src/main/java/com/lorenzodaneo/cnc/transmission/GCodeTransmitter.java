@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 public abstract class GCodeTransmitter implements Runnable {
 
     Logger logger = Logger.getLogger(this.getClass());
-    protected GCodeQueue queue;
+    GCodeQueue queue;
 
     static final String TEST = "TEST";
 
@@ -23,10 +23,6 @@ public abstract class GCodeTransmitter implements Runnable {
 
     public void join() throws InterruptedException {
         thread.join();
-    }
-
-    public void stop(){
-        thread.interrupt();
     }
 
 }

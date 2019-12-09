@@ -1,11 +1,12 @@
 package com.lorenzodaneo.cnc.converter;
 
 public enum CommandSectionEnum {
-    Command(' '),
+    GCommand('G'),
     FCommand('F'),
     XAxis('X'),
     YAxis('Y'),
-    ZAxis('Z');
+    ZAxis('Z'),
+    None(' ');
 
     public final char value;
 
@@ -18,6 +19,6 @@ public enum CommandSectionEnum {
             if(sectionEnum.value == value)
                 return sectionEnum;
         }
-        return CommandSectionEnum.Command;
+        return None;
     }
 }

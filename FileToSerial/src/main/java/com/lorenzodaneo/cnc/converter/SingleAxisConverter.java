@@ -19,6 +19,22 @@ class SingleAxisConverter {
         }
     }
 
+    private enum ConvertedSectionEnum{
+        Interval('i'),
+        Steps('s'),
+        Direction('d');
+
+        char value;
+
+        ConvertedSectionEnum(char value){
+            this.value = value;
+        }
+
+        static String buildConvertedCommand(char axisId, long interval, long steps, Direction direction){
+            return axisId + "," + Interval.value + interval + "," + Steps.value + steps + "," + Direction.value + direction.value;
+        }
+    }
+
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
     static final String RECALCULATES = "RECALCULATES";
@@ -60,6 +76,7 @@ class SingleAxisConverter {
     void setLastPosition(String axisValueString){
         axisValueString = axisValueString.replace(axisId, "");
         this.lastPosition = new BigDecimal(axisValueString).setScale(SCALE, RoundingMode.HALF_EVEN);
+        this.originalLastPosition = new BigDecimal(this.lastPosition.toString());
     }
 
     String convert(BigDecimal speedMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
@@ -68,7 +85,7 @@ class SingleAxisConverter {
             this.originalLastPosition = BigDecimal.ZERO;
             this.lastPosition = BigDecimal.ZERO;
             this.nextPosition = null;
-            return axisId + ",i0,s" + MAX_AXIS_LENGTH_STEPS + ",d" + Direction.Back.value;
+            return ConvertedSectionEnum.buildConvertedCommand(getAxisId(), 0, MAX_AXIS_LENGTH_STEPS, Direction.Back);
         }
 
         BigDecimal startToEndDistance = computeStartToEndDistance();
@@ -97,7 +114,7 @@ class SingleAxisConverter {
 
         this.stepsToExecute = stepsToExecute;
         Direction direction = getDirection();
-        return axisId + ",i" + halfStepInterval.longValue() + ",s" + stepsToExecute.longValue() + ",d" + direction.value;
+        return ConvertedSectionEnum.buildConvertedCommand(getAxisId(), halfStepInterval.longValue(), stepsToExecute.longValue(), direction);
     }
 
 

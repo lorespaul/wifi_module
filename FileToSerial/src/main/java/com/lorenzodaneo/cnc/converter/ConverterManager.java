@@ -15,13 +15,6 @@ public class ConverterManager {
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
     private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2.0);
-
-    public static final String COMMAND_GET_CURRENT_POSITION = "M114";
-    public static final String FINAL_COMMAND = "M2";
-    public static final String G_FAST = "G00";
-    public static final String G_SLOW = "G01";
-    public static final String G_H0ME = "G28";
-
     private static final BigDecimal MICROS_CONVERSION = BigDecimal.valueOf(1000000);
     private static final BigDecimal STD_SPEED_SLOW = BigDecimal.valueOf(30);
     private static final BigDecimal STD_SPEED_FAST = BigDecimal.valueOf(40);
@@ -54,16 +47,13 @@ public class ConverterManager {
                             .toString()).setScale(4, RoundingMode.HALF_EVEN).toString())
                     .append(" ");
         if(cachedFCommand != null && appendUserSpeed)
-            result.append("F").append(cachedFCommand.toString());
+            result.append(GCodeEnum.F.value).append(cachedFCommand.toString());
         return result.toString().trim();
     }
 
 
-    public List<String> convertCommand(String command) {
-        if(command.equals(FINAL_COMMAND) || command.equals("")){
-            return Collections.singletonList(command);
-        }
 
+    public void trySetSpeed(String command){
         String fCommandString = getSection(command, CommandSectionEnum.FCommand);
         if(fCommandString != null && !fCommandString.isEmpty()) {
             fCommandString = fCommandString.replace("F", "");
@@ -71,9 +61,26 @@ public class ConverterManager {
             if(cachedFCommand.compareTo(BigDecimal.TEN) < 0 || cachedFCommand.compareTo(STD_SPEED_FAST) > 0)
                 cachedFCommand = null;
         }
+    }
 
-        String commandType = getSection(command, CommandSectionEnum.Command);
-        if(commandType == null || (!commandType.equals(G_FAST) && !commandType.equals(G_H0ME) && !commandType.equals(G_SLOW))){
+
+    public void setHomePosition(CommandSectionEnum... sectionEnums){
+        for(CommandSectionEnum sectionEnum : sectionEnums){
+            for(SingleAxisConverter axisConverter : this.axisConverters){
+                if(axisConverter.getAxisId() == sectionEnum.value)
+                    axisConverter.setLastPosition("0.0");
+            }
+        }
+    }
+
+
+    public List<String> convertCommand(String command) {
+
+        trySetSpeed(command);
+
+        String commandTypeString = getSection(command, CommandSectionEnum.GCommand);
+        GCodeEnum commandType = commandTypeString != null ? GCodeEnum.getEnum(commandTypeString) : null;
+        if(commandTypeString == null || !commandType.isMovementCommand()){
             logger.warn("Command must have a type: " + command);
             return Collections.singletonList("");
         }
@@ -84,11 +91,11 @@ public class ConverterManager {
                 converter.putNextPosition(section);
         }
 
-        BigDecimal mmPerSecSpeed = commandType.equals(G_FAST) ? STD_SPEED_FAST : cachedFCommand != null ? cachedFCommand :  STD_SPEED_SLOW;
+        BigDecimal mmPerSecSpeed = commandType == GCodeEnum.G00 ? STD_SPEED_FAST : cachedFCommand != null ? cachedFCommand :  STD_SPEED_SLOW;
 
         List<SingleAxisConverter> implicatedMotors = new ArrayList<>();
         BigDecimal linearDistance = computeLinearDistance(this.axisConverters, implicatedMotors);
-        if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && !command.equals(G_H0ME))
+        if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && commandType != GCodeEnum.G28)
             return Collections.singletonList("");
 
         List<BigDecimal> splitLinearDistance = new ArrayList<>();
@@ -118,7 +125,7 @@ public class ConverterManager {
                     logger.warn("Speed is zero with command: " + command);
 
                 for(SingleAxisConverter converter : this.axisConverters){
-                    String value = converter.convert(speedMicros, splitLinearDistance, splittingPosition, commandType.equals(G_H0ME));
+                    String value = converter.convert(speedMicros, splitLinearDistance, splittingPosition, commandType == GCodeEnum.G28);
                     if(value != null && value.equals(SingleAxisConverter.RECALCULATES)){
                         actuatorsValues.clear();
                         continue external;

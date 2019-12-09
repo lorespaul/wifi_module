@@ -1,9 +1,12 @@
 package com.lorenzodaneo.cnc.transmission;
 
 import com.lorenzodaneo.cnc.TwoWaySerialCommunication;
+import com.lorenzodaneo.cnc.converter.CommandSectionEnum;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
+import com.lorenzodaneo.cnc.converter.GCodeEnum;
 import com.lorenzodaneo.cnc.fileio.PositionCache;
 
+import java.util.Collections;
 import java.util.List;
 
 public class GCodeConsumer extends GCodeTransmitter {
@@ -28,12 +31,8 @@ public class GCodeConsumer extends GCodeTransmitter {
         while (true) {
             try {
                 String command = queue.getGCode();
-                if(command != null && (command.startsWith("G") || command.startsWith("M") || command.startsWith("F") || command.startsWith(TEST))){
+                if(command != null){
                     command = command.trim();
-                    if(command.startsWith(ConverterManager.COMMAND_GET_CURRENT_POSITION)){
-                        System.out.println(converterManager.getCurrentPositions(true));
-                        continue;
-                    }
 
                     boolean test = serial == null;
                     if(command.startsWith(TEST)){
@@ -41,7 +40,32 @@ public class GCodeConsumer extends GCodeTransmitter {
                         command = command.replace(TEST,  "");
                     }
 
-                    List<String> convertedCommands = converterManager.convertCommand(command.trim());
+                    List<String> convertedCommands = null;
+
+                    GCodeEnum codeEnum = GCodeEnum.getEnum(command);
+                    if(codeEnum == null) continue;
+                    switch (codeEnum){
+                        case G00:
+                        case G01:
+                        case G28:
+                            convertedCommands = converterManager.convertCommand(command.trim());
+                            break;
+                        case G92:
+                            converterManager.setHomePosition(CommandSectionEnum.XAxis, CommandSectionEnum.YAxis);
+                            break;
+                        case M02:
+                            convertedCommands = Collections.singletonList(GCodeEnum.M02.value);
+                            break;
+                        case M114:
+                            System.out.println(converterManager.getCurrentPositions(true));
+                            break;
+                        case F:
+                            converterManager.trySetSpeed(command);
+                            break;
+                        default:
+                            continue;
+                    }
+
                     if(convertedCommands == null)
                         continue;
 
@@ -69,7 +93,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                         }
                     }
 
-                    if (command.equals(ConverterManager.FINAL_COMMAND)){
+                    if (codeEnum == GCodeEnum.M02){
                         System.out.println("Commands executed: " + writtenCommands);
                         System.out.println("Max command length: " + maxCommandLength);
                         maxCommandLength = 0;

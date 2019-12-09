@@ -1,6 +1,7 @@
 package com.lorenzodaneo.cnc.transmission;
 
 import com.lorenzodaneo.cnc.converter.CommandSectionEnum;
+import com.lorenzodaneo.cnc.converter.GCodeEnum;
 import com.lorenzodaneo.cnc.fileio.GCodeReader;
 import com.lorenzodaneo.cnc.converter.ConverterManager;
 import com.lorenzodaneo.cnc.fileio.PositionCache;
@@ -43,6 +44,8 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
 
             try{
                 String input = scanner.nextLine();
+                String temp = input;
+                input = input.toUpperCase();
 
                 try {
                     if(fileWorker != null && !fileWorker.isInterrupted()){
@@ -74,9 +77,9 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
 
                 if(fileWorker == null && input.startsWith(GCODE_FROM_FILE)){
 
-                    String filename = input.replace(GCODE_FROM_FILE, "").trim();
-                    if(filename.startsWith(TEST)){
-                        filename = filename.replace(TEST, "").trim();
+                    String filename = temp.substring(GCODE_FROM_FILE.length()).trim();
+                    if(input.contains(TEST)){
+                        filename = filename.substring(TEST.length()).trim();
                     }
 
                     filename = "gcodes/" + filename;
@@ -89,6 +92,7 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                     }
 
                     final String finalFilename = filename;
+                    final boolean isTest = input.contains(TEST);
                     fileWorker = new Thread(() -> {
                         String command;
                         System.out.println("Start processing file " + finalFilename);
@@ -110,7 +114,7 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                                 }
                             }
                             if(!command.isEmpty()){
-                                if(input.contains(TEST))
+                                if(isTest)
                                     command = TEST + command;
                                 queue.putGCode(command);
                             }
@@ -122,11 +126,11 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                     setStopped(false);
                     fileWorker.start();
 
-                } else if(input.equals(ConverterManager.G_H0ME) || input.equals(ConverterManager.COMMAND_GET_CURRENT_POSITION) || input.matches("^G0[01].*") || input.matches("^F\\d+.*")) {
+                } else if(GCodeEnum.isValidGCode(input)) {
 
-                    if(input.equals(ConverterManager.G_H0ME))
+                    if(input.equals(GCodeEnum.G28.value))
                         positions = null;
-                    queue.putGCodesOnTop(ConverterManager.FINAL_COMMAND, input);
+                    queue.putGCodesOnTop(GCodeEnum.M02.value, input);
 
                 }
 
@@ -191,8 +195,8 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                     break;
             }
             if(axisPosition != null) {
-                queue.putGCode(ConverterManager.G_FAST + " " + axisPosition);
-                queue.putGCode(ConverterManager.FINAL_COMMAND);
+                queue.putGCode(GCodeEnum.G00.value + " " + axisPosition);
+                queue.putGCode(GCodeEnum.M02.value);
                 if(axisKey != ' '){
                     positions = positions.replaceAll(axisKey + "-?\\d+(\\.\\d+)?", axisPosition);
                 }
