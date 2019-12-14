@@ -8,11 +8,10 @@
 #ifndef StepperCommand_h
 #define StepperCommand_h
 
-#define MIN_INTERVAL 310
-#define REVOLUTION_STEPS 400
+#define REVOLUTION_STEPS 800
 #define QUARTER_REVOLUTION_STEPS REVOLUTION_STEPS/4
 
-#define GO_HOME_INTERVAL 400
+#define GO_HOME_INTERVAL 100
 
 namespace stepper_motor {
     

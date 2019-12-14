@@ -7,7 +7,7 @@ public abstract class GCodeTransmitter implements Runnable {
     Logger logger = Logger.getLogger(this.getClass());
     GCodeQueue queue;
 
-    static final String TEST = "TEST";
+    static final String TEST = " TEST ";
 
     private Thread thread;
 

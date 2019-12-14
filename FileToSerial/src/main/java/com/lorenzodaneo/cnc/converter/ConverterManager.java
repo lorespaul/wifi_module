@@ -14,7 +14,7 @@ public class ConverterManager {
 
     private static Logger logger = Logger.getLogger(ConverterManager.class);
 
-    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(2.0);
+    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(1.0);
     private static final BigDecimal MICROS_CONVERSION = BigDecimal.valueOf(1000000);
     private static final BigDecimal STD_SPEED_SLOW = BigDecimal.valueOf(30);
     private static final BigDecimal STD_SPEED_FAST = BigDecimal.valueOf(40);

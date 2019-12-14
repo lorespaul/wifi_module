@@ -55,7 +55,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
         command.halfStepDone(timestamp, this->step);
         
         if(command.stepsTerminated()){
-            digitalWrite(this->stepPin, LOW);
+            //digitalWrite(this->stepPin, LOW);
             command.stop(timestamp);
         }
         
