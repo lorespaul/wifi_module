@@ -4,7 +4,7 @@
 #define BUFFER_LENGTH 50
 #define PRELOADED 20
 #define GET_NEXT "GET_NEXT"
-#define EXIT "M2"
+#define EXIT "M02"
 //#define SINGLE -1
 
 #define SAFE_PIN 11
@@ -90,7 +90,7 @@ int preload(){
         if(readCommandFromSerial() > 0){
             Serial.println(GET_NEXT);
             
-            if(strncmp(readBuffer, EXIT, 2) == 0) {
+            if(strncmp(readBuffer, EXIT, 3) == 0) {
                 memset(readBuffer, ZC, BUFFER_LENGTH);
                 return counter;
             }

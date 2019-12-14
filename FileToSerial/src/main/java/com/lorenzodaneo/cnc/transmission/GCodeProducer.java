@@ -128,9 +128,9 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
 
                 } else if(GCodeEnum.isValidGCode(input)) {
 
-                    if(input.equals(GCodeEnum.G28.value))
+                    if(input.equals(GCodeEnum.G28.value.get(0)))
                         positions = null;
-                    queue.putGCodesOnTop(GCodeEnum.M02.value, input);
+                    queue.putGCodesOnTop(GCodeEnum.M02.value.get(0), input);
 
                 }
 
@@ -195,8 +195,8 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                     break;
             }
             if(axisPosition != null) {
-                queue.putGCode(GCodeEnum.G00.value + " " + axisPosition);
-                queue.putGCode(GCodeEnum.M02.value);
+                queue.putGCode(GCodeEnum.G00.value.get(0) + " " + axisPosition);
+                queue.putGCode(GCodeEnum.M02.value.get(0));
                 if(axisKey != ' '){
                     positions = positions.replaceAll(axisKey + "-?\\d+(\\.\\d+)?", axisPosition);
                 }

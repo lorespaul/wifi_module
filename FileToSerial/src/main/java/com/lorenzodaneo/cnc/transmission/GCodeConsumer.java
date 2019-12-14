@@ -54,7 +54,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                             converterManager.setHomePosition(CommandSectionEnum.XAxis, CommandSectionEnum.YAxis);
                             break;
                         case M02:
-                            convertedCommands = Collections.singletonList(GCodeEnum.M02.value);
+                            convertedCommands = Collections.singletonList(GCodeEnum.M02.value.get(0));
                             break;
                         case M114:
                             System.out.println(converterManager.getCurrentPositions(true));

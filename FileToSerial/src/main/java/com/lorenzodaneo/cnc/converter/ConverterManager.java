@@ -47,7 +47,7 @@ public class ConverterManager {
                             .toString()).setScale(4, RoundingMode.HALF_EVEN).toString())
                     .append(" ");
         if(cachedFCommand != null && appendUserSpeed)
-            result.append(GCodeEnum.F.value).append(cachedFCommand.toString());
+            result.append(GCodeEnum.F.value.get(0)).append(cachedFCommand.toString());
         return result.toString().trim();
     }
 
