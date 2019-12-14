@@ -45,7 +45,7 @@ class SingleAxisConverter {
     private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(800);
     private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(50); // quarter step mode
     private static final BigDecimal MIN_DISTANCE = BigDecimal.valueOf(0.01);
-    private static final BigDecimal HALF_MIN_DISTANCE = BigDecimal.valueOf(0.005);
+//    private static final BigDecimal HALF_MIN_DISTANCE = BigDecimal.valueOf(0.005);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
     private static final long MAX_AXIS_LENGTH_STEPS = 90000;
 

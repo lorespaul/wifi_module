@@ -19,8 +19,8 @@ char preloadedCommands[PRELOADED][BUFFER_LENGTH];
 int commandsMissingUntilNextPreload = 0;
 int currentPreloaded = 0;
 
-Stepper x(6, 7, 8);
-Stepper y(4, 5, 9);
+Stepper y(6, 7, 8);
+Stepper x(4, 5, 9);
 Stepper z(2, 3, 10);
 
 StepperCommand xCommand;

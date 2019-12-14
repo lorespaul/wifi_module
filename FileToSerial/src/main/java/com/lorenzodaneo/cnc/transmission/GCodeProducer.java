@@ -182,11 +182,11 @@ public class GCodeProducer extends GCodeTransmitter implements IKeyInputReceiver
                     axisKey = CommandSectionEnum.YAxis.value;
                     break;
                 case ArrowLeft:
-                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, true);
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, false);
                     axisKey = CommandSectionEnum.XAxis.value;
                     break;
                 case ArrowRight:
-                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, false);
+                    axisPosition = changeXYPosition(positions, CommandSectionEnum.XAxis, true);
                     axisKey = CommandSectionEnum.XAxis.value;
                     break;
                 case ZChar:
