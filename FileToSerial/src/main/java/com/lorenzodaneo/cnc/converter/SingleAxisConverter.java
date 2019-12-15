@@ -44,7 +44,7 @@ class SingleAxisConverter {
     private static final BigDecimal MM_PER_REVOLUTION = BigDecimal.valueOf(8);
     private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(800);
     private static final BigDecimal MIN_HALF_INTERVAL = BigDecimal.valueOf(50); // quarter step mode
-    private static final BigDecimal MIN_DISTANCE = BigDecimal.valueOf(0.01);
+    private static final BigDecimal STEP_DISTANCE = BigDecimal.valueOf(0.01);
 //    private static final BigDecimal HALF_MIN_DISTANCE = BigDecimal.valueOf(0.005);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
     private static final long MAX_AXIS_LENGTH_STEPS = 90000;
@@ -89,7 +89,7 @@ class SingleAxisConverter {
         }
 
         BigDecimal startToEndDistance = computeStartToEndDistance();
-        if(startToEndDistance.compareTo(MIN_DISTANCE) < 0 || this.nextPosition == null){
+        if(startToEndDistance.compareTo(STEP_DISTANCE) < 0 || this.nextPosition == null){
             this.originalLastPosition = new BigDecimal(lastPosition.setScale(4, RoundingMode.HALF_EVEN).toString());
             this.incrementalStepsToExecute = BigDecimal.valueOf(0.0);
             this.nextPosition = null;
@@ -103,6 +103,7 @@ class SingleAxisConverter {
             logger.warn(getAxisId() + ": No steps to do. (" + proportionalDistance.setScale(4, RoundingMode.HALF_EVEN).toString() + ")");
             this.originalLastPosition = new BigDecimal(lastPosition.setScale(4, RoundingMode.HALF_EVEN).toString());
             this.incrementalStepsToExecute = BigDecimal.valueOf(0.0);
+            this.stepsToExecute = BigDecimal.valueOf(0.0);
             this.nextPosition = null;
             return null;
         }
@@ -121,10 +122,10 @@ class SingleAxisConverter {
     void completeConversion(List<BigDecimal> splitting, int splittingPosition){
         if(this.nextPosition != null){
             incrementalStepsToExecute = incrementalStepsToExecute.add(stepsToExecute);
-            BigDecimal distance = this.stepsToExecute.setScale(SCALE, RoundingMode.HALF_EVEN).multiply(MIN_DISTANCE);
+            BigDecimal distance = this.stepsToExecute.setScale(SCALE, RoundingMode.HALF_EVEN).multiply(STEP_DISTANCE);
             this.lastPosition = getDirection() == Direction.Ahead ? this.lastPosition.add(distance) : this.lastPosition.subtract(distance);
 
-            if(splittingPosition == splitting.size() - 1){
+            if(splittingPosition == splitting.size() - 1 || computeStartToEndDistance().compareTo(BigDecimal.ZERO) == 0){
                 checkConversionValidity();
                 originalLastPosition = new BigDecimal(lastPosition.setScale(4, RoundingMode.HALF_EVEN).toString());
                 incrementalStepsToExecute = BigDecimal.valueOf(0.0);
@@ -143,8 +144,8 @@ class SingleAxisConverter {
         }
         // remainingHypotenuseDistance : startToEndDistance = splitting.get(i) : x
         BigDecimal result = startToEndDistance.multiply(splitting.get(splittingPosition)).divide(remainingHypotenuseDistance, RoundingMode.HALF_EVEN).setScale(SCALE, RoundingMode.HALF_EVEN);
-        if(result.compareTo(MIN_DISTANCE) < 0)
-            return startToEndDistance;
+        if(result.compareTo(STEP_DISTANCE) < 0)
+            return STEP_DISTANCE;
         return result;
     }
 
@@ -171,7 +172,7 @@ class SingleAxisConverter {
 
     private void checkConversionValidity(){
         // 400steps : 8mm = stepsToExecute : x
-        BigDecimal testDistance = incrementalStepsToExecute.multiply(MIN_DISTANCE);
+        BigDecimal testDistance = incrementalStepsToExecute.multiply(STEP_DISTANCE);
         BigDecimal testLastPosition = getDirection() == Direction.Ahead ? this.nextPosition.subtract(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN) : this.nextPosition.add(testDistance).setScale(SCALE, RoundingMode.HALF_EVEN);
         if(testLastPosition.compareTo(originalLastPosition) == 0)
             return;

@@ -51,7 +51,7 @@ public class GCodeConsumer extends GCodeTransmitter {
                             convertedCommands = converterManager.convertCommand(command.trim());
                             break;
                         case G92:
-                            converterManager.setHomePosition(CommandSectionEnum.XAxis, CommandSectionEnum.YAxis);
+                            converterManager.setHomePosition(CommandSectionEnum.XAxis, CommandSectionEnum.YAxis, CommandSectionEnum.ZAxis);
                             break;
                         case M02:
                             convertedCommands = Collections.singletonList(GCodeEnum.M02.value.get(0));
