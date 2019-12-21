@@ -45,9 +45,12 @@ void loop() {
 
     if(digitalRead(SAFE_PIN) == HIGH){
         Serial.end();
-        xCommand.forceStop();
-        yCommand.forceStop();
-        zCommand.forceStop();
+        if(xCommand.forceStop())
+            x.reset();
+        if(yCommand.forceStop())
+            y.reset();
+        if(zCommand.forceStop())
+            z.reset();
         Serial.begin(SERIAL_BAUD);
     }
     

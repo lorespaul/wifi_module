@@ -79,7 +79,11 @@ class SingleAxisConverter {
         this.originalLastPosition = new BigDecimal(this.lastPosition.toString());
     }
 
-    String convert(BigDecimal speedMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
+    boolean canBeInfinite(){
+        return canBeInfinite;
+    }
+
+    String convert(BigDecimal deltaTMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
         if(infinite && canBeInfinite){
             this.incrementalStepsToExecute = BigDecimal.valueOf(0.0);
             this.originalLastPosition = BigDecimal.ZERO;
@@ -108,7 +112,7 @@ class SingleAxisConverter {
             return null;
         }
 
-        BigDecimal halfStepInterval = speedMicros.setScale(SCALE, RoundingMode.HALF_EVEN).divide(stepsToExecute, RoundingMode.HALF_EVEN).divide(TWO, RoundingMode.HALF_EVEN);
+        BigDecimal halfStepInterval = deltaTMicros.setScale(SCALE, RoundingMode.HALF_EVEN).divide(stepsToExecute, RoundingMode.HALF_EVEN).divide(TWO, RoundingMode.HALF_EVEN);
         if(halfStepInterval.compareTo(MIN_HALF_INTERVAL) < 0){
             return RECALCULATES;
         }
@@ -132,6 +136,12 @@ class SingleAxisConverter {
                 this.nextPosition = null;
             }
         }
+    }
+
+    String getNextPosition(){
+        if(this.nextPosition != null)
+            return this.nextPosition.toString();
+        return null;
     }
 
 

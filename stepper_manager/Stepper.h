@@ -28,6 +28,7 @@ namespace stepper_motor {
             ~Stepper();
             void begin();
             void makeStepAsync(StepperCommand &command);
+            void reset();
         
     };
     

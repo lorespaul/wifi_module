@@ -37,10 +37,7 @@ void Stepper::makeStepAsync(StepperCommand &command){
     if(digitalRead(this->homePin) == HIGH){
         //delay(3);
         if(command.forceStop()){
-            this->direction = LOW;
-            this->step = LOW;
-            digitalWrite(this->directionPin, this->direction);
-            digitalWrite(this->stepPin, this->step);
+            this->reset();
         }
         return;
     }
@@ -73,4 +70,12 @@ void Stepper::manageDirection(int dir){
         this->direction = dir;
         digitalWrite(this->directionPin, dir);
     }
+}
+
+
+void Stepper::reset(){
+    this->direction = LOW;
+    this->step = LOW;
+    digitalWrite(this->directionPin, this->direction);
+    digitalWrite(this->stepPin, this->step);
 }
