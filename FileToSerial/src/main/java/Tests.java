@@ -1,11 +1,14 @@
+import com.lorenzodaneo.cnc.physics.PhysicalVector;
+
 import java.math.BigDecimal;
 
 public class Tests {
 
     public static void main(String[] argv){
-        test2();
-        System.out.println("-----------------------------------------------------");
-        test3();
+//        test2();
+//        System.out.println("-----------------------------------------------------");
+//        test3();
+        testThetaVectors();
     }
 
 
@@ -46,5 +49,16 @@ public class Tests {
         System.out.println(angle.doubleValue());
     }
 
+
+    private static void testThetaVectors(){
+        PhysicalVector a = new PhysicalVector();
+        a.addDimension('X', BigDecimal.valueOf(1));
+        a.addDimension('Y', BigDecimal.valueOf(2));
+        PhysicalVector b = new PhysicalVector();
+        b.addDimension('X', BigDecimal.valueOf(1));
+        b.addDimension('Y', BigDecimal.valueOf(4));
+        BigDecimal theta = PhysicalVector.computeThetaAngleByDotProduct(a, b);
+        System.out.println("Theta computed is: " + theta.toString());
+    }
 
 }

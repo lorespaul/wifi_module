@@ -1,5 +1,7 @@
 package com.lorenzodaneo.cnc.converter;
 
+import com.lorenzodaneo.cnc.physics.PhysicalVector;
+import com.lorenzodaneo.cnc.utils.BigDecimalUtils;
 import org.apache.log4j.Logger;
 
 import java.math.BigDecimal;
@@ -16,7 +18,12 @@ public class ConverterManager {
     private static final BigDecimal STD_SPEED_SLOW = BigDecimal.valueOf(30);
     private static final BigDecimal STD_SPEED_FAST = BigDecimal.valueOf(40);
 
+    private static final BigDecimal ACCELERATION = BigDecimal.valueOf(10.0);
+
     private static BigDecimal cachedFCommand = null;
+    private BigDecimal currentSpeed = BigDecimal.valueOf(0.0);
+
+    private ComputingJunction computingJunction = new ComputingJunction();
 
     private List<SingleAxisConverterMirroring> mirroredAxisConverters = Arrays.asList(
             new SingleAxisConverterMirroring(CommandSectionEnum.XAxis.value, true),
@@ -81,10 +88,10 @@ public class ConverterManager {
     }
 
 
-    public List<String> convertCommands(List<String> commands){
+    public List<String> convertCommands(List<String> commands, boolean flush){
 
         List<String> result = new ArrayList<>();
-        List<ComputingCommand> computingCommandList = new ArrayList<>();
+        LinkedList<ComputingCommand> computingCommandList = new LinkedList<>();
 
         for(String command : commands){
             trySetSpeed(command);
@@ -116,19 +123,63 @@ public class ConverterManager {
                 continue;
             }
 
-            computingCommandList.add(new ComputingCommand(commandType, linearDistance, involvedMotors.size(), mmPerSecSpeed, sections));
+            ComputingCommand computingCommand = new ComputingCommand(commandType, linearDistance, involvedMotors.size(), mmPerSecSpeed, sections);
 
-            for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
-                mirroring.completeOnMirroring();
+            for (int splittingPosition = 0; splittingPosition < computingCommand.getSplitLinearDistance().size(); splittingPosition++){
+                BigDecimal distance = computingCommand.getSplitLinearDistance().get(splittingPosition);
+
+                PhysicalVector vector = new PhysicalVector();
+                external:for(BigDecimal checkSpeed = computingCommand.getMmPerSecSpeed(); checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
+
+                    if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
+                        logger.warn("Speed not adjustable.");
+                        return Collections.emptyList();
+                    }
+
+                    BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, checkSpeed);
+                    if(deltaTMicros.compareTo(BigDecimal.ZERO) == 0)
+                        logger.warn("Speed is zero with command: " + command);
+
+                    for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
+                        BigDecimal axisSpeed = mirroring.preComputing(deltaTMicros, computingCommand.getSplitLinearDistance(), splittingPosition, computingCommand.getCommandType() == GCodeEnum.G28);
+                        if(getSection(command, CommandSectionEnum.getEnum(mirroring.getAxisId())) != null && axisSpeed.compareTo(BigDecimal.valueOf(-1)) == 0){
+                            vector.clear();
+                            continue external;
+                        }
+                        vector.addDimension(mirroring.getAxisId(), axisSpeed);
+                    }
+
+                    break;
+                }
+
+                computingCommand.addVector(vector);
+
+                for(SingleAxisConverter converter : getAxisMirrorsOnly())
+                    converter.completeConversion(computingCommand.getSplitLinearDistance(), splittingPosition);
             }
+
+            computingCommandList.addLast(computingCommand);
+
         }
 
-        for (ComputingCommand computingCommand : computingCommandList){
+        this.computingJunction.addComputingCommandsList(computingCommandList);
+        this.computingJunction.computeJunctionSpeed(ACCELERATION, flush);
+        List<ComputingCommand> executing;
+        if(flush){
+            executing = this.computingJunction.getAll();
+        } else if(this.computingJunction.isFull()){
+            executing = this.computingJunction.getFirsts(ComputingJunction.MAX_LIST_SIZE - 5);
+        } else {
+            executing = this.computingJunction.getFirsts(1);
+        }
+
+        for (ComputingCommand computingCommand : executing){
             result.addAll(convertComputingCommand(computingCommand));
-            for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
-                if(!mirroring.checkAlignment()){
-                    System.out.println("Axis mirroring alignment checking failed!");
-                }
+        }
+
+        for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
+            if(!mirroring.checkAlignment()){
+                System.out.println("Axis mirroring alignment checking failed!");
             }
         }
 
@@ -154,9 +205,9 @@ public class ConverterManager {
                 if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
                     logger.warn("Speed not adjustable.");
                     return Collections.emptyList();
-                }                                                                // mm/s^2       // s
-//                BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, BigDecimal.TEN, delta, false, checkSpeed);
-                BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, checkSpeed);
+                }
+
+                BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, ACCELERATION, checkSpeed);
                 if(deltaTMicros.compareTo(BigDecimal.ZERO) == 0)
                     logger.warn("Speed is zero with command: " + command);
 
@@ -193,16 +244,16 @@ public class ConverterManager {
     }
 
 
-    private BigDecimal computeLinearDistance(List<SingleAxisConverter> axisConverters, List<SingleAxisConverter> implicatedMotors){
+    private BigDecimal computeLinearDistance(List<SingleAxisConverter> axisConverters, List<SingleAxisConverter> involvedMotors){
         BigDecimal linearDistance = BigDecimal.ZERO;
         for (SingleAxisConverter converter : axisConverters){
             BigDecimal axisDistance = converter.computeStartToEndDistance();
             if(axisDistance.compareTo(BigDecimal.ZERO) > 0) {
-                implicatedMotors.add(converter);
+                involvedMotors.add(converter);
                 if(linearDistance.compareTo(BigDecimal.ZERO) == 0){
                     linearDistance = axisDistance;
                 } else {
-                    linearDistance = bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
+                    linearDistance = BigDecimalUtils.bigSqrt(linearDistance.pow(2).add(axisDistance.pow(2))).setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN);
                 }
             }
         }
@@ -214,13 +265,21 @@ public class ConverterManager {
         return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(MICROS_CONVERSION);
     }
 
-//    private BigDecimal computeDeltaTMicrosOfCommand(BigDecimal linearDistance, BigDecimal acceleration, BigDecimal deltaT, boolean isDeceleration, BigDecimal mmPerSecMaxSpeed){
-//        BigDecimal mmPerSec = acceleration.multiply(deltaT); // compute speed based on acceleration and time delta
-//        if(isDeceleration)
-//            mmPerSec = mmPerSecMaxSpeed.subtract(mmPerSec); // if is deceleration subtract speed found to max speed
-//        mmPerSec = mmPerSecMaxSpeed.compareTo(mmPerSec) > 0 ?  mmPerSec : mmPerSecMaxSpeed; // speed can't be bigger than max speed
-//        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSec, RoundingMode.HALF_EVEN).multiply(MICROS_CONVERSION);
-//    }
+    private BigDecimal computeDeltaTMicrosOfCommand(BigDecimal linearDistance, BigDecimal acceleration, BigDecimal mmPerSecTargetSpeed){
+//        // calculate delta t with target speed
+//        BigDecimal deltaTOnTargetSpeed = linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(mmPerSecTargetSpeed, RoundingMode.HALF_EVEN);
+//        // calculate speed based on delta t on target speed and acceleration (acceleration * delta t on target speed)
+//        BigDecimal instantaneousSpeed = acceleration.multiply(deltaTOnTargetSpeed);
+//        // recalculate current speed adding instantaneous speed if target is bigger or subtracting instantaneous speed if target is smaller
+//        this.currentSpeed = mmPerSecTargetSpeed.compareTo(currentSpeed) > 0 ? this.currentSpeed.add(instantaneousSpeed) : this.currentSpeed.subtract(instantaneousSpeed);
+//        // calculate final delta t
+        // Vf^2 = Vi^2 + 2*acceleration*distance
+        if(mmPerSecTargetSpeed.compareTo(this.currentSpeed) != 0){
+            BigDecimal signedAcceleration = mmPerSecTargetSpeed.compareTo(this.currentSpeed) >= 0 ? acceleration : acceleration.negate();
+            this.currentSpeed = BigDecimalUtils.bigSqrt(this.currentSpeed.pow(2).add(BigDecimal.valueOf(2).multiply(signedAcceleration).multiply(linearDistance)));
+        }
+        return linearDistance.setScale(SingleAxisConverter.SCALE, RoundingMode.HALF_EVEN).divide(this.currentSpeed, RoundingMode.HALF_EVEN).multiply(MICROS_CONVERSION);
+    }
 
 
     public static String getSection(String command, CommandSectionEnum sectionEnum){
@@ -232,43 +291,6 @@ public class ConverterManager {
             }
         }
         return null;
-    }
-
-
-
-
-
-    private static final BigDecimal SQRT_DIG = new BigDecimal(150);
-    private static final BigDecimal SQRT_PRE = new BigDecimal(10).pow(SQRT_DIG.intValue());
-
-    /**
-     * Private utility method used to compute the square root of a BigDecimal.
-     *
-     * @author Luciano Culacciatti
-     * @url http://www.codeproject.com/Tips/257031/Implementing-SqrtRoot-in-BigDecimal
-     */
-    private static BigDecimal sqrtNewtonRaphson  (BigDecimal c, BigDecimal xn, BigDecimal precision){
-        BigDecimal fx = xn.pow(2).add(c.negate());
-        BigDecimal fpx = xn.multiply(new BigDecimal(2));
-        BigDecimal xn1 = fx.divide(fpx,2*SQRT_DIG.intValue(), RoundingMode.HALF_DOWN);
-        xn1 = xn.add(xn1.negate());
-        BigDecimal currentSquare = xn1.pow(2);
-        BigDecimal currentPrecision = currentSquare.subtract(c);
-        currentPrecision = currentPrecision.abs();
-        if (currentPrecision.compareTo(precision) <= -1){
-            return xn1;
-        }
-        return sqrtNewtonRaphson(c, xn1, precision);
-    }
-
-    /**
-     * Uses Newton Raphson to compute the square root of a BigDecimal.
-     *
-     * @author Luciano Culacciatti
-     * @url http://www.codeproject.com/Tips/257031/Implementing-SqrtRoot-in-BigDecimal
-     */
-    public static BigDecimal bigSqrt(BigDecimal c){
-        return sqrtNewtonRaphson(c,new BigDecimal(1),new BigDecimal(1).divide(SQRT_PRE));
     }
 
 }

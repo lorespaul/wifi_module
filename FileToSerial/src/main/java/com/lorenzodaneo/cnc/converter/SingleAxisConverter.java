@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-class SingleAxisConverter {
+public class SingleAxisConverter {
 
     private enum Direction {
         Back(1),
@@ -39,7 +39,7 @@ class SingleAxisConverter {
 
     static final String RECALCULATES = "RECALCULATES";
 
-    static final int SCALE = 10;
+    public static final int SCALE = 10;
 
     private static final BigDecimal MM_PER_REVOLUTION = BigDecimal.valueOf(8);
     private static final BigDecimal REVOLUTION_STEPS = BigDecimal.valueOf(800);
@@ -56,6 +56,8 @@ class SingleAxisConverter {
 
     private BigDecimal incrementalStepsToExecute = BigDecimal.valueOf(0.0);
     private BigDecimal stepsToExecute;
+
+    private BigDecimal halfStepInterval;
 
     private boolean canBeInfinite;
 
@@ -118,6 +120,7 @@ class SingleAxisConverter {
         }
 
         this.stepsToExecute = stepsToExecute;
+        this.halfStepInterval = halfStepInterval;
         Direction direction = getDirection();
         return ConvertedSectionEnum.buildConvertedCommand(getAxisId(), halfStepInterval.longValue(), stepsToExecute.longValue(), direction);
     }
@@ -136,6 +139,13 @@ class SingleAxisConverter {
                 this.nextPosition = null;
             }
         }
+    }
+
+    BigDecimal getSpeed(){
+        if(this.stepsToExecute == null)
+            return BigDecimal.valueOf(-1);
+        BigDecimal partialDistance = this.stepsToExecute.setScale(SCALE, RoundingMode.HALF_EVEN).multiply(STEP_DISTANCE);
+        return partialDistance.divide(halfStepInterval.multiply(BigDecimal.valueOf(2).multiply(this.stepsToExecute)), RoundingMode.HALF_EVEN);
     }
 
     String getNextPosition(){

@@ -1,13 +1,15 @@
 package com.lorenzodaneo.cnc.converter;
 
+import com.lorenzodaneo.cnc.physics.PhysicalVector;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class ComputingCommand {
+public class ComputingCommand {
 
-    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(1.0);
+    private static final BigDecimal MAX_POINT_TO_POINT_DISTANCE = BigDecimal.valueOf(0.1);
 
     GCodeEnum commandType;
     BigDecimal linearDistance;
@@ -15,12 +17,14 @@ class ComputingCommand {
     BigDecimal mmPerSecSpeed;
     Map<Character, String> sections;
 
+    List<PhysicalVector> vectors;
 
     ComputingCommand(GCodeEnum commandType, BigDecimal linearDistance, int involvedMotors, BigDecimal mmPerSecSpeed, Map<Character, String> sections){
         this.commandType = commandType;
         this.linearDistance = linearDistance;
         this.mmPerSecSpeed = mmPerSecSpeed;
         this.sections = sections;
+        this.vectors = new ArrayList<>();
         computeSplitLinearDistance(involvedMotors);
     }
 
@@ -35,6 +39,14 @@ class ComputingCommand {
     public BigDecimal getMmPerSecSpeed(){
         return this.mmPerSecSpeed;
     }
+
+    public void addVector(PhysicalVector vector){
+        vectors.add(vector);
+    }
+
+//    public BigDecimal getJunctionSpeed(){
+//        return this.junctionManagement.junctionSpeed;
+//    }
 
     private void computeSplitLinearDistance(int involvedMotors){
        this.splitLinearDistance = new ArrayList<>();

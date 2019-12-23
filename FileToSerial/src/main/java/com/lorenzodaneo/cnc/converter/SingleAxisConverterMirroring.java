@@ -55,14 +55,20 @@ public class SingleAxisConverterMirroring {
         this.preComputingAxis.putNextPosition(axisValueString);
     }
 
-    void completeOnMirroring(){
-        String nextPosition = this.preComputingAxis.getNextPosition();
-        if(nextPosition != null)
-            this.preComputingAxis.setLastPosition(nextPosition);
-    }
+//    void completeOnMirroring(){
+//        String nextPosition = this.preComputingAxis.getNextPosition();
+//        if(nextPosition != null)
+//            this.preComputingAxis.setLastPosition(nextPosition);
+//    }
 
     boolean checkAlignment(){
         return this.preComputingAxis.getLastPosition().compareTo(this.converter.getLastPosition()) == 0;
+    }
+
+    // return axisSpeed
+    BigDecimal preComputing(BigDecimal deltaTMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
+        this.preComputingAxis.convert(deltaTMicros, splitting, splittingPosition, infinite);
+        return this.preComputingAxis.getSpeed();
     }
 
     String convert(BigDecimal deltaTMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
