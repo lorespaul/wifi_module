@@ -15,38 +15,30 @@ public class SpeedComputation {
 
     private LinkedList<ComputingCommand> commands = new LinkedList<>();
 
-    void addComputingCommandsList(LinkedList<ComputingCommand> commands){
-        for (ComputingCommand command : commands){
-            this.commands.addLast(command);
-        }
+    void addComputingCommand(ComputingCommand command){
+        this.commands.addLast(command);
     }
 
-    LinkedList<ComputingCommand> getFirsts(int quantity){
-        LinkedList<ComputingCommand> firsts = new LinkedList<>();
-        for (int i = 0; i < quantity && i < commands.size(); i++){
-            firsts.addLast(commands.getFirst());
-            commands.removeFirst();
-        }
-        return firsts;
+    LinkedList<ComputingCommand> getAllCommands(){
+        return commands;
     }
 
-    LinkedList<ComputingCommand> getAll(){
+    LinkedList<ComputingCommand> poolAllCommands(){
         LinkedList<ComputingCommand> all = new LinkedList<>(commands);
         commands.clear();
         return all;
     }
 
-    boolean isFull(){
-        return commands.size() >= MAX_LIST_SIZE;
-    }
-
-    public LinkedList<ComputingCommand> getNextCommands(boolean lastCommand){
-        if(lastCommand){
-            return getAll();
-        } else if(isFull()){
-            return getFirsts(SpeedComputation.MAX_LIST_SIZE);
+    public LinkedList<ComputingCommand> poolNextCommands(boolean flush){
+        if(flush){
+            return poolAllCommands();
         } else {
-            return getFirsts(3);
+            LinkedList<ComputingCommand> list = new LinkedList<>();
+            if(commands.size() >= MAX_LIST_SIZE){
+                list.add(commands.getFirst());
+                commands.removeFirst();
+            }
+            return list;
         }
     }
 
@@ -61,25 +53,18 @@ public class SpeedComputation {
                 continue;
             }
 
-            if(command.getCommand().equals("M02")){
-                System.out.println("ju");
-            }
-
             PhysicalVector currentVector = command.computeVectorAverage();
             List<Character> axisWithInverseDirection = currentVector.detectInverseDirection(previousCommand.computeVectorAverage());
-//            try{ // compute junction speed
+
             BigDecimal adjustedSpeed, targetSpeed;
-            if(axisWithInverseDirection != null && !lastCommands){// && axisWithInverseDirection.size() > 0){ // TODO: direction inversion is not the only reason to recalculate speed
+            if(axisWithInverseDirection != null && !lastCommands){ //TODO: direction inversion is not the only reason to recalculate speed
 
                 final BigDecimal cosThetaAngle = PhysicalVector.computeCosThetaAngleByDotProduct(currentVector, previousCommand.computeVectorAverage());
                 final BigDecimal sinHalfThetaAngle = BigDecimalUtils.bigSqrt(BigDecimal.ONE.subtract(cosThetaAngle).divide(BigDecimal.valueOf(2), RoundingMode.HALF_EVEN)).setScale(20, RoundingMode.HALF_EVEN);
                 final BigDecimal radiusBetweenVectors = JUNCTION_DEVIATION.multiply(sinHalfThetaAngle.divide(BigDecimal.ONE.subtract(sinHalfThetaAngle), RoundingMode.HALF_EVEN));
                 adjustedSpeed = BigDecimalUtils.bigSqrt(maxAcceleration.multiply(radiusBetweenVectors)).setScale(20, RoundingMode.HALF_EVEN);
                 adjustedSpeed = adjustedSpeed.min(previousCommand.getLastMmPerSecSpeed().min(command.getFirstMmPerSecSpeed()));
-//                    previousCommand.setLastMmPerSecSpeed(finalSpeed);
-//                    command.setFirstMmPerSecSpeed(finalSpeed);
-//            } else if(axisWithInverseDirection != null){
-//
+
                 targetSpeed = previousCommand.getLastMmPerSecSpeed();
             } else {
                 adjustedSpeed = BigDecimal.valueOf(2.0);
@@ -100,9 +85,6 @@ public class SpeedComputation {
                     break;
                 adjustedSpeed = previousCommand.getFirstMmPerSecSpeed();
             }
-//            } catch (Throwable e){
-//                throw e;
-//            }
 
             previousCommand = command;
         }

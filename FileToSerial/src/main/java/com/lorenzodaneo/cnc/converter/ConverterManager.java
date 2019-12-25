@@ -87,95 +87,89 @@ public class ConverterManager {
     }
 
 
-    public List<String> convertCommands(List<String> commands, boolean flush){
+    public List<String> convertCommands(String command){
 
-        List<String> result = new ArrayList<>();
-        LinkedList<ComputingCommand> computingCommandList = new LinkedList<>();
+        trySetSpeed(command);
 
-        for(String command : commands){
-            trySetSpeed(command);
+        String commandTypeString = getSection(command, CommandSectionEnum.GCommand);
+        GCodeEnum commandType = commandTypeString != null ? GCodeEnum.getEnum(commandTypeString) : null;
+        if(commandTypeString == null || !commandType.isMovementCommand()){
+            if(GCodeEnum.getEnum(command) == GCodeEnum.M02)
+                return recomputingAndConvert(ComputingCommand.getClosingCommand(), true);
+            logger.warn("Command must have a type: " + command);
+            return Collections.singletonList("");
+        }
 
-            String commandTypeString = getSection(command, CommandSectionEnum.GCommand);
-            GCodeEnum commandType = commandTypeString != null ? GCodeEnum.getEnum(commandTypeString) : null;
-            if(commandTypeString == null || !commandType.isMovementCommand()){
-                if(GCodeEnum.getEnum(command) == GCodeEnum.M02)
-                    computingCommandList.addLast(ComputingCommand.getClosingCommand());
-                logger.warn("Command must have a type: " + command);
-                result.add("");
-                continue;
+        Map<Character, String> sections = new HashMap<>();
+        for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
+            String section = getSection(command, CommandSectionEnum.getEnum(mirroring.getAxisId()));
+            if(section != null && !section.isEmpty()){
+                section = mirroring.getAxisId() + new BigDecimal(section.substring(1)).setScale(2, RoundingMode.HALF_EVEN).toString(); // rounding to machine precision
+                mirroring.putMirroringNextPosition(section);
+                sections.put(mirroring.getAxisId(), section);
             }
+        }
 
-            Map<Character, String> sections = new HashMap<>();
-            for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
-                String section = getSection(command, CommandSectionEnum.getEnum(mirroring.getAxisId()));
-                if(section != null && !section.isEmpty()){
-                    section = mirroring.getAxisId() + new BigDecimal(section.substring(1)).setScale(2, RoundingMode.HALF_EVEN).toString(); // rounding to machine precision
-                    mirroring.putMirroringNextPosition(section);
-                    sections.put(mirroring.getAxisId(), section);
-                }
-            }
+        BigDecimal mmPerSecSpeed = commandType == GCodeEnum.G00 ? STD_SPEED_FAST : cachedFCommand != null ? cachedFCommand :  STD_SPEED_SLOW;
 
-            BigDecimal mmPerSecSpeed = commandType == GCodeEnum.G00 ? STD_SPEED_FAST : cachedFCommand != null ? cachedFCommand :  STD_SPEED_SLOW;
+        BigDecimal linearDistance = computeLinearDistance(getAxisMirrorsOnly());
+        if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && commandType != GCodeEnum.G28){
+            return Collections.singletonList("");
+        }
 
-            BigDecimal linearDistance = computeLinearDistance(getAxisMirrorsOnly());
-            if(linearDistance.compareTo(BigDecimal.ZERO) == 0 && commandType != GCodeEnum.G28){
-                result.add("");
-                continue;
-            }
+        ComputingCommand previous = getPreviousCommandWithSameSections(this.speedComputation.getAllCommands(), new ArrayList<>(sections.keySet()));
+        ComputingCommand computingCommand = new ComputingCommand(command, commandType, linearDistance, previous != null ? previous.getLastMmPerSecSpeed() : BigDecimal.ZERO, mmPerSecSpeed, sections);
 
-            ComputingCommand previous = getPreviousCommandWithSameSections(computingCommandList, new ArrayList<>(sections.keySet()));
-            ComputingCommand computingCommand = new ComputingCommand(command, commandType, linearDistance, previous != null ? previous.getLastMmPerSecSpeed() : BigDecimal.ZERO, mmPerSecSpeed, sections);
+        for (int splittingPosition = 0; splittingPosition < computingCommand.getSplitLinearDistance().size(); splittingPosition++){
+            BigDecimal distance = computingCommand.getSplitLinearDistance().get(splittingPosition);
 
-            for (int splittingPosition = 0; splittingPosition < computingCommand.getSplitLinearDistance().size(); splittingPosition++){
-                BigDecimal distance = computingCommand.getSplitLinearDistance().get(splittingPosition);
+            PhysicalVector vector = new PhysicalVector();
+            external:for(BigDecimal checkSpeed = computingCommand.getMmPerSecSpeed(splittingPosition); checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
 
-                PhysicalVector vector = new PhysicalVector();
-                external:for(BigDecimal checkSpeed = computingCommand.getMmPerSecSpeed(splittingPosition); checkSpeed.compareTo(BigDecimal.ZERO) > 0; checkSpeed = checkSpeed.subtract(BigDecimal.ONE)){
-
-                    if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
-                        logger.warn("Speed not adjustable.");
-                        return Collections.emptyList();
-                    }
-
-                    BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, checkSpeed);
-                    if(deltaTMicros.compareTo(BigDecimal.ZERO) == 0)
-                        logger.warn("Speed is zero with command: " + command);
-
-                    for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
-                        BigDecimal axisSpeed = mirroring.preComputing(deltaTMicros, computingCommand.getSplitLinearDistance(), splittingPosition, computingCommand.getCommandType() == GCodeEnum.G28);
-                        if(getSection(command, CommandSectionEnum.getEnum(mirroring.getAxisId())) != null && axisSpeed.compareTo(BigDecimal.valueOf(-1)) == 0){
-                            vector.clear();
-                            continue external;
-                        }
-                        vector.addDimension(mirroring.getAxisId(), axisSpeed);
-                    }
-
-                    break;
+                if(checkSpeed.compareTo(BigDecimal.ONE) == 0){
+                    logger.warn("Speed not adjustable.");
+                    return Collections.emptyList();
                 }
 
-                computingCommand.addVector(vector);
+                BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, checkSpeed);
+                if(deltaTMicros.compareTo(BigDecimal.ZERO) == 0)
+                    logger.warn("Speed is zero with command: " + command);
 
-                for(SingleAxisConverter converter : getAxisMirrorsOnly())
-                    converter.completeConversion(computingCommand.getSplitLinearDistance(), splittingPosition);
+                for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
+                    BigDecimal axisSpeed = mirroring.preComputing(deltaTMicros, computingCommand.getSplitLinearDistance(), splittingPosition, computingCommand.getCommandType() == GCodeEnum.G28);
+                    if(getSection(command, CommandSectionEnum.getEnum(mirroring.getAxisId())) != null && axisSpeed.compareTo(BigDecimal.valueOf(-1)) == 0){
+                        vector.clear();
+                        continue external;
+                    }
+                    vector.addDimension(mirroring.getAxisId(), axisSpeed);
+                }
+
+                break;
             }
 
-            computingCommandList.addLast(computingCommand);
+            computingCommand.addVector(vector);
+
+            for(SingleAxisConverter converter : getAxisMirrorsOnly())
+                converter.completeConversion(computingCommand.getSplitLinearDistance(), splittingPosition);
+
 
         }
 
-        this.speedComputation.addComputingCommandsList(computingCommandList);
+        return recomputingAndConvert(computingCommand, false);
+    }
+
+
+    private List<String> recomputingAndConvert(ComputingCommand computingCommand, boolean flush){
+        this.speedComputation.addComputingCommand(computingCommand);
         this.speedComputation.computeSpeedBackwards(ACCELERATION, flush);
-        List<ComputingCommand> executing = this.speedComputation.getNextCommands(flush);
+        LinkedList<ComputingCommand> executing = this.speedComputation.poolNextCommands(flush);
+        if(flush) // remove M02
+            executing.removeLast();
 
-        for (ComputingCommand computingCommand : executing){
-            result.addAll(convertComputingCommand(computingCommand));
+        LinkedList<String> result = new LinkedList<>();
+        for (ComputingCommand c : executing){
+            result.addAll(convertComputingCommand(c));
         }
-
-//        for(SingleAxisConverterMirroring mirroring : this.mirroredAxisConverters){
-//            if(!mirroring.checkAlignment()){
-//                System.out.println("Axis mirroring alignment checking failed!");
-//            }
-//        }
 
         return result;
     }
@@ -201,7 +195,7 @@ public class ConverterManager {
                     return Collections.emptyList();
                 }
 
-                System.out.println(command.getCommand() + " command speed: " + checkSpeed);
+//                System.out.println(command.getCommand() + " command speed: " + checkSpeed);
                 BigDecimal deltaTMicros = computeDeltaTMicrosOfCommand(distance, checkSpeed);
                 if(deltaTMicros.compareTo(BigDecimal.ZERO) == 0)
                     logger.warn("Speed is zero with command: " + command);

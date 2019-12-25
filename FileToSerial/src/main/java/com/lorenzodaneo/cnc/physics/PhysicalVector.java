@@ -51,7 +51,7 @@ public class PhysicalVector {
             BigDecimal thisDimension = vectorDimensions.get(dimension);
             BigDecimal otherDimension = other.getDimension(dimension);
 
-            if(thisDimension.compareTo(BigDecimal.ZERO) == 0 || otherDimension.compareTo(BigDecimal.ZERO) == 0)
+            if(thisDimension == null || otherDimension == null || thisDimension.compareTo(BigDecimal.ZERO) == 0 || otherDimension.compareTo(BigDecimal.ZERO) == 0)
                 return null;
 
             if((thisDimension.compareTo(BigDecimal.ZERO) > 0 && otherDimension.compareTo(BigDecimal.ZERO) < 0) ||

@@ -18,7 +18,8 @@ public class ComputingCommand {
         closingSection.put(CommandSectionEnum.ZAxis.value, "Z0.0");
     }
 
-    private String command;// = UUID.randomUUID().toString();
+    private String commandId = UUID.randomUUID().toString();
+    private String command;
 
     private GCodeEnum commandType;
 //    private BigDecimal linearDistance;
@@ -34,11 +35,11 @@ public class ComputingCommand {
         this.command = command;
         this.commandType = commandType;
 //        this.linearDistance = linearDistance;
-        this.flatSpeed = mmPerSecSpeed;
+        this.flatSpeed = mmPerSecSpeed.setScale(2, RoundingMode.HALF_EVEN);
         this.sections = sections;
         this.vectors = new ArrayList<>();
         this.splitLinearDistance = computeSplitLinearDistance(linearDistance);
-        preComputeSpeedBasedOnPrevious(previousMmPerSecSpeed, mmPerSecSpeed);
+        preComputeSpeedBasedOnPrevious(previousMmPerSecSpeed, this.flatSpeed);
     }
 
     public static ComputingCommand getClosingCommand(){
@@ -75,40 +76,19 @@ public class ComputingCommand {
         return this.mmPerSecSpeeds.getLast();
     }
 
-//    public void setFirstMmPerSecSpeed(BigDecimal firstMmPerSecSpeed){
-//        this.mmPerSecSpeeds.removeFirst();
-//        this.mmPerSecSpeeds.addFirst(firstMmPerSecSpeed);
-//    }
-//
-//    public void setLastMmPerSecSpeed(BigDecimal lastMmPerSecSpeed){
-//        this.mmPerSecSpeeds.removeLast();
-//        this.mmPerSecSpeeds.addLast(lastMmPerSecSpeed);
-//    }
-//
-//    public void setMmPerSecSpeed(BigDecimal mmPerSecSpeed){
-//        this.mmPerSecSpeed = mmPerSecSpeed;
-//    }
-
     public void addVector(PhysicalVector vector){
         vectors.add(vector);
     }
 
-//    public BigDecimal getJunctionSpeed(){
-//        return this.junctionManagement.junctionSpeed;
-//    }
-
     private LinkedList<BigDecimal> computeSplitLinearDistance(BigDecimal linearDistance){
        LinkedList<BigDecimal> splitLinearDistance = new LinkedList<>();
-//        if(linearDistance.compareTo(MAX_POINT_TO_POINT_DISTANCE) > 0){
+
         BigDecimal[] splitting = linearDistance.divideAndRemainder(MAX_POINT_TO_POINT_DISTANCE);
         for(BigDecimal i = BigDecimal.ZERO; i.compareTo(splitting[0]) < 0; i = i.add(BigDecimal.ONE)){
             splitLinearDistance.add(MAX_POINT_TO_POINT_DISTANCE);
         }
         splitLinearDistance.add(splitting[1]);
         return splitLinearDistance;
-//        } else {
-//            this.splitLinearDistance.add(linearDistance);
-//        }
     }
 
     void preComputeSpeedBasedOnPrevious(BigDecimal previousMmPerSecSpeed, BigDecimal mmPerSecTargetSpeed){
@@ -128,7 +108,7 @@ public class ComputingCommand {
                     else
                         nextSpeed = BigDecimalUtils.bigSqrt(previousMmPerSecSpeed.pow(2).subtract(speedAfterAcceleration));
                 }
-                nextSpeed = nextSpeed.setScale(20, RoundingMode.HALF_EVEN);
+                nextSpeed = nextSpeed.setScale(2, RoundingMode.HALF_EVEN);
                 speeds.add(nextSpeed);
                 previousMmPerSecSpeed = nextSpeed;
             }
@@ -142,11 +122,9 @@ public class ComputingCommand {
 
     boolean computeSpeedBasedOnPrevious(BigDecimal previousMmPerSecSpeed, BigDecimal mmPerSecTargetSpeed){
         BigDecimal nextSpeed;
-//        LinkedList<BigDecimal> speeds = new LinkedList<>();
         boolean computingFinished = false;
         if(mmPerSecTargetSpeed.compareTo(previousMmPerSecSpeed) != 0){
             for(int i = 0; i < splitLinearDistance.size(); i++){
-//                if(!computingFinished){
                 BigDecimal currentDistance = splitLinearDistance.get(i);
 
                 BigDecimal speedAfterAcceleration = BigDecimal.valueOf(2).multiply(ConverterManager.ACCELERATION).multiply(currentDistance);
@@ -160,16 +138,13 @@ public class ComputingCommand {
                     else
                         nextSpeed = BigDecimalUtils.bigSqrt(previousMmPerSecSpeed.pow(2).subtract(speedAfterAcceleration));
                 }
-                nextSpeed = nextSpeed.setScale(20, RoundingMode.HALF_EVEN);
+                nextSpeed = nextSpeed.setScale(2, RoundingMode.HALF_EVEN);
                 BigDecimal presentSpeed = this.mmPerSecSpeeds.get(i);
-                this.mmPerSecSpeeds.remove(i);
                 this.mmPerSecSpeeds.add(i, nextSpeed);
+                this.mmPerSecSpeeds.remove(i + 1);
                 previousMmPerSecSpeed = nextSpeed;
-//                }
+
                 if(presentSpeed.compareTo(nextSpeed) <= 0){
-//                    if(!computingFinished)
-//                        speeds.removeFirst();
-//                    speeds.addFirst(presentSpeed);
                     computingFinished = true;
                     break;
                 }
@@ -187,11 +162,9 @@ public class ComputingCommand {
 
     boolean computeSpeedBasedOnNext(BigDecimal nextMmPerSecSpeed, BigDecimal mmPerSecTargetSpeed){
         BigDecimal previousSpeed;
-//        LinkedList<BigDecimal> speeds = new LinkedList<>();
         boolean computingFinished = false;
         if(mmPerSecTargetSpeed.compareTo(nextMmPerSecSpeed) != 0){
             for(int i = splitLinearDistance.size() - 1; i >= 0; i--){
-//                if(!computingFinished){
                 BigDecimal currentDistance = splitLinearDistance.get(i);
 
                 BigDecimal speedAfterAcceleration = BigDecimal.valueOf(2).multiply(ConverterManager.ACCELERATION).multiply(currentDistance);
@@ -205,16 +178,13 @@ public class ComputingCommand {
                     else
                         previousSpeed = BigDecimalUtils.bigSqrt(nextMmPerSecSpeed.pow(2).subtract(speedAfterAcceleration));
                 }
-                previousSpeed = previousSpeed.setScale(20, RoundingMode.HALF_EVEN);
+                previousSpeed = previousSpeed.setScale(2, RoundingMode.HALF_EVEN);
                 BigDecimal presentSpeed = this.mmPerSecSpeeds.get(i);
                 this.mmPerSecSpeeds.remove(i);
                 this.mmPerSecSpeeds.add(i, previousSpeed);
                 nextMmPerSecSpeed = previousSpeed;
 //                }
                 if(presentSpeed.compareTo(previousSpeed) <= 0){
-//                    if(!computingFinished)
-//                        speeds.removeFirst();
-//                    speeds.addFirst(presentSpeed);
                     computingFinished = true;
                     break;
                 }
@@ -266,7 +236,7 @@ public class ComputingCommand {
 
     @Override
     public boolean equals(Object other){
-        return other instanceof ComputingCommand && command.equals(((ComputingCommand) other).getCommand());
+        return other instanceof ComputingCommand && commandId.equals(((ComputingCommand) other).commandId);
     }
 
 }
