@@ -1,6 +1,9 @@
 package com.lorenzodaneo.cnc.transmission;
 
+import com.lorenzodaneo.cnc.converter.GCodeEnum;
+
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
@@ -29,6 +32,23 @@ public class GCodeQueue {
         String gCode = queue.poll();
         producerSemaphore.release();
         return gCode;
+    }
+
+    List<String> getGCodes(int count, GCodeEnum flushingCode){
+        List<String> codes = new LinkedList<>();
+        for (int i = 0; i < count; i++){
+            try {
+                consumerSemaphore.acquire();
+            } catch (InterruptedException e) {
+                return null;
+            }
+            String code = queue.poll();
+            codes.add(code);
+            producerSemaphore.release();
+            if(GCodeEnum.getEnum(code) == flushingCode)
+                break;
+        }
+        return codes;
     }
 
 

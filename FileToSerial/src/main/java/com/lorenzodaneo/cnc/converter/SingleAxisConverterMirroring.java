@@ -67,8 +67,15 @@ public class SingleAxisConverterMirroring {
 
     // return axisSpeed
     BigDecimal preComputing(BigDecimal deltaTMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){
-        this.preComputingAxis.convert(deltaTMicros, splitting, splittingPosition, infinite);
-        return this.preComputingAxis.getSpeed();
+        String result = this.preComputingAxis.convert(deltaTMicros, splitting, splittingPosition, infinite);
+        if(result == null || this.preComputingAxis.getNextPosition() == null)
+            return BigDecimal.ZERO;
+        BigDecimal speed = this.preComputingAxis.getSpeed();
+        if(speed.compareTo(BigDecimal.valueOf(-1)) == 0)
+            return BigDecimal.ZERO;
+        if(this.preComputingAxis.getDirection() == SingleAxisConverter.Direction.Back)
+            speed = speed.negate();
+        return speed;
     }
 
     String convert(BigDecimal deltaTMicros, List<BigDecimal> splitting, int splittingPosition, boolean infinite){

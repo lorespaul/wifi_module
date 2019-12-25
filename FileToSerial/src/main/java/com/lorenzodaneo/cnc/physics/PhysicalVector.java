@@ -4,13 +4,12 @@ import com.lorenzodaneo.cnc.utils.BigDecimalUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PhysicalVector {
 
+
+    private static final int SCALE = 20;
     private Map<Character, BigDecimal> vectorDimensions;
 
     public PhysicalVector(){
@@ -21,11 +20,18 @@ public class PhysicalVector {
         vectorDimensions.put(axisId, dimension);
     }
 
+    public BigDecimal getDimension(char axisId){
+        if(!vectorDimensions.containsKey(axisId))
+            return null;
+//            throw new IllegalArgumentException("Vector not contains dimension axis key " + axisId);
+        return vectorDimensions.get(axisId);
+    }
+
     public void clear(){
         vectorDimensions.clear();
     }
 
-    Map<Character, BigDecimal> getVectorDimensions(){
+    public Map<Character, BigDecimal> getVectorDimensions(){
         return vectorDimensions;
     }
 
@@ -33,8 +39,31 @@ public class PhysicalVector {
         return vectorDimensions.size();
     }
 
+    /**
+     *
+     * @param other
+     * @return axisIds changing direction, empty array if axis not change direction, null if axis not matching
+     */
+    public List<Character> detectInverseDirection(PhysicalVector other){
+        Set<Character> dimensionIds = vectorDimensions.keySet();
+        List<Character> result = new ArrayList<>();
+        for(char dimension : dimensionIds){
+            BigDecimal thisDimension = vectorDimensions.get(dimension);
+            BigDecimal otherDimension = other.getDimension(dimension);
+
+            if(thisDimension.compareTo(BigDecimal.ZERO) == 0 || otherDimension.compareTo(BigDecimal.ZERO) == 0)
+                return null;
+
+            if((thisDimension.compareTo(BigDecimal.ZERO) > 0 && otherDimension.compareTo(BigDecimal.ZERO) < 0) ||
+                    (thisDimension.compareTo(BigDecimal.ZERO) < 0 && otherDimension.compareTo(BigDecimal.ZERO) > 0)){
+                result.add(dimension);
+            }
+        }
+        return result;
+    }
+
     // with dot product
-    public static BigDecimal computeThetaAngleByDotProduct(PhysicalVector... vectors){
+    public static BigDecimal computeCosThetaAngleByDotProduct(PhysicalVector... vectors){
         if(vectors.length <= 1)
             throw new IllegalArgumentException("Vector in dot product must be more than one.");
 
@@ -55,7 +84,7 @@ public class PhysicalVector {
                 partialDivisor = partialDivisor.add(entry.getValue().pow(2));
             }
 
-            partialDivisor = BigDecimalUtils.bigSqrt(partialDivisor).setScale(4, RoundingMode.HALF_EVEN);
+            partialDivisor = BigDecimalUtils.bigSqrt(partialDivisor).setScale(SCALE, RoundingMode.HALF_EVEN);
             if(divisor == null)
                 divisor = partialDivisor;
             else
@@ -74,15 +103,15 @@ public class PhysicalVector {
             BigDecimal partialDividend = null;
             for(BigDecimal dimension : entry.getValue()){
                 if(partialDividend == null)
-                    partialDividend = dimension;
+                    partialDividend = dimension.abs();
                 else
-                    partialDividend = partialDividend.multiply(dimension);
+                    partialDividend = partialDividend.multiply(dimension.abs());
             }
             assert partialDividend != null;
             dividend = dividend.add(partialDividend);
         }
 
-        return dividend.setScale(4, RoundingMode.HALF_EVEN).divide(divisor, RoundingMode.HALF_EVEN);
+        return dividend.setScale(SCALE, RoundingMode.HALF_EVEN).divide(divisor, RoundingMode.HALF_EVEN);
     }
 
 }

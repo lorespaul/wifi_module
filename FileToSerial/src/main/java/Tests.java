@@ -53,11 +53,13 @@ public class Tests {
     private static void testThetaVectors(){
         PhysicalVector a = new PhysicalVector();
         a.addDimension('X', BigDecimal.valueOf(1));
-        a.addDimension('Y', BigDecimal.valueOf(2));
+        a.addDimension('Y', BigDecimal.valueOf(4));
+        a.addDimension('Z', BigDecimal.valueOf(3));
         PhysicalVector b = new PhysicalVector();
-        b.addDimension('X', BigDecimal.valueOf(1));
-        b.addDimension('Y', BigDecimal.valueOf(4));
-        BigDecimal theta = PhysicalVector.computeThetaAngleByDotProduct(a, b);
+        b.addDimension('X', BigDecimal.valueOf(2));
+        b.addDimension('Y', BigDecimal.valueOf(3));
+        b.addDimension('Z', BigDecimal.valueOf(5));
+        BigDecimal theta = PhysicalVector.computeCosThetaAngleByDotProduct(a, b);
         System.out.println("Theta computed is: " + theta.toString());
     }
 

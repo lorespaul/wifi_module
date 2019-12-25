@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SingleAxisConverter {
 
-    private enum Direction {
+    enum Direction {
         Back(1),
         Ahead(0);
 
@@ -145,13 +145,8 @@ public class SingleAxisConverter {
         if(this.stepsToExecute == null)
             return BigDecimal.valueOf(-1);
         BigDecimal partialDistance = this.stepsToExecute.setScale(SCALE, RoundingMode.HALF_EVEN).multiply(STEP_DISTANCE);
-        return partialDistance.divide(halfStepInterval.multiply(BigDecimal.valueOf(2).multiply(this.stepsToExecute)), RoundingMode.HALF_EVEN);
-    }
-
-    String getNextPosition(){
-        if(this.nextPosition != null)
-            return this.nextPosition.toString();
-        return null;
+        return partialDistance.divide(halfStepInterval.multiply(BigDecimal.valueOf(2)).divide(ConverterManager.MICROS_CONVERSION, RoundingMode.HALF_EVEN)
+                .multiply(this.stepsToExecute), RoundingMode.HALF_EVEN);
     }
 
 
@@ -169,6 +164,10 @@ public class SingleAxisConverter {
         return result;
     }
 
+    BigDecimal getNextPosition(){
+        return nextPosition;
+    }
+
 
     void putNextPosition(String axisValueString){
         axisValueString = axisValueString.replace(axisId, "");
@@ -183,7 +182,7 @@ public class SingleAxisConverter {
     }
 
 
-    private Direction getDirection(){
+    Direction getDirection(){
         if(nextPosition.compareTo(originalLastPosition) >= 0)
             return Direction.Ahead;
         return Direction.Back;

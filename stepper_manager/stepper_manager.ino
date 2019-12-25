@@ -55,7 +55,7 @@ void loop() {
     }
     
     if(allMotorsFinishACommand()){
-        if(commandsMissingUntilNextPreload == 0){
+        /*if(commandsMissingUntilNextPreload == 0){
             commandsMissingUntilNextPreload = preload();
         }
         
@@ -72,6 +72,16 @@ void loop() {
             } else {
                 currentPreloaded++;   
             }
+        }*/
+        int count = readCommandFromSerial();
+        if(count > 0){
+            if(strncmp(readBuffer, EXIT, 3) == 0) {
+                Serial.println(GET_NEXT);
+                return;
+            }
+            commandBuilder.build(readBuffer, xCommand, yCommand, zCommand);
+            memset(readBuffer, ZC, BUFFER_LENGTH);
+            Serial.println(GET_NEXT); 
         }
     }
 
